@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 72px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 20%, transparent 70%);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      width: 1000px;
+      height: 1000px;
+      transform: translateX(-50%);
+      background: radial-gradient(circle at 50% 40%, rgba(0, 217, 181, 0.06) 0%, rgba(232, 184, 76, 0.03) 35%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 24px 16px 0;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding: 0 4px;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .back-btn:active { transform: scale(0.95); }
+
+    .header-info h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
+
+    .header-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .profile-card {
+      background: linear-gradient(160deg, #0f1a1f 0%, #0c141b 30%, #0a1018 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.5);
+    }
+
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(0, 217, 181, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .profile-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 217, 181, 0.2), rgba(232, 184, 76, 0.1));
+      border: 2px solid rgba(0, 217, 181, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--teal);
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-email { font-size: 12px; color: var(--text-muted); margin-top: 4px; position: relative; z-index: 1; }
+    .profile-uid { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #4d5a66; margin-top: 8px; position: relative; z-index: 1; }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-stat { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 10px 8px; }
+    .profile-stat-label { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .profile-stat-value { font-family: "Space Grotesk", sans-serif; font-size: 14px; font-weight: 700; }
+    .profile-stat-value.teal { color: var(--teal); }
+    .profile-stat-value.gold { color: var(--gold); }
+    .profile-stat-value.purple { color: var(--purple); }
+
+    .settings-section { margin-bottom: 20px; }
+    .section-label { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; padding: 0 4px; }
+
+    .settings-list {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line-soft);
+      cursor: pointer;
+      transition: background 0.2s;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .settings-item:last-child { border-bottom: none; }
+    .settings-item:hover { background: rgba(255, 255, 255, 0.02); }
+    .settings-item:active { background: rgba(0, 217, 181, 0.04); }
+
+    .settings-item-left { display: flex; align-items: center; gap: 12px; }
+    .settings-item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .settings-item-icon.security { background: rgba(0, 217, 181, 0.1); color: var(--teal); }
+    .settings-item-icon.wallet { background: rgba(232, 184, 76, 0.1); color: var(--gold); }
+    .settings-item-icon.notification { background: rgba(167, 139, 250, 0.1); color: var(--purple); }
+    .settings-item-icon.support { background: rgba(0, 217, 181, 0.1); color: var(--teal); }
+    .settings-item-icon.about { background: rgba(124, 136, 148, 0.1); color: var(--text-muted); }
+    .settings-item-icon.danger { background: rgba(229, 86, 107, 0.1); color: var(--danger); }
+
+    .settings-item-text { font-size: 14px; font-weight: 500; }
+    .settings-item-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .settings-item-arrow { color: var(--text-muted); font-size: 14px; }
+    .settings-item-value { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-muted); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-sheet {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px 20px 40px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--line);
+      border-radius: 4px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-title {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .modal-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0, 217, 181, 0.1); }
+    .modal-input.error { border-color: var(--danger); }
+
+    .modal-error { font-size: 11px; color: var(--danger); margin-bottom: 8px; min-height: 16px; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.primary {
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      color: #12100a;
+    }
+
+    .modal-btn.primary:hover { filter: brightness(1.08); }
+
+    .modal-btn.primary:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+
+    .modal-btn.cancel {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+    }
+
+    .modal-btn.cancel:hover { border-color: var(--teal); color: var(--teal); }
+
+    .modal-btn.danger {
+      background: rgba(229, 86, 107, 0.1);
+      border: 1px solid rgba(229, 86, 107, 0.3);
+      color: var(--danger);
+    }
+
+    .modal-btn.danger:hover { background: rgba(229, 86, 107, 0.2); }
+
+    .modal-btn .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(18, 16, 10, 0.35);
+      border-top-color: #12100a;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .modal-btn.loading .btn-text { display: none; }
+    .modal-btn.loading .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* FAQ */
+    .faq-item {
+      border-bottom: 1px solid var(--line-soft);
+      padding: 14px 0;
+    }
+
+    .faq-item:last-child { border-bottom: none; }
+
+    .faq-question {
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-answer {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .faq-answer.open { display: block; }
+
+    .faq-arrow {
+      transition: transform 0.2s;
+      font-size: 12px;
+    }
+
+    .faq-arrow.open { transform: rotate(180deg); }
+
+    /* Logout section */
+    .logout-section { margin-top: 8px; margin-bottom: 20px; }
+
+    .btn-logout {
+      width: 100%;
+      background: rgba(229, 86, 107, 0.08);
+      border: 2px solid rgba(229, 86, 107, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.03em;
+      color: var(--danger);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-logout:hover { background: rgba(229, 86, 107, 0.15); border-color: rgba(229, 86, 107, 0.5); }
+    .btn-logout:active { transform: scale(0.98); }
+
+    .btn-logout .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(229, 86, 107, 0.3);
+      border-top-color: var(--danger);
+      animation: spin 0.7s linear infinite;
+    }
+
+    .btn-logout.loading .btn-text { display: none; }
+    .btn-logout.loading .spinner { display: inline-block; }
+
+    .app-version { text-align: center; font-family: "JetBrains Mono", monospace; font-size: 10px; color: #39434d; margin-bottom: 10px; }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 217, 181, 0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229, 86, 107, 0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232, 184, 76, 0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      background: linear-gradient(180deg, rgba(12, 17, 25, 0.95) 0%, rgba(10, 15, 22, 0.98) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 4px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 6px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      position: relative;
+      min-width: 52px;
+      cursor: pointer;
+    }
+
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item span { font-size: 9px; font-weight: 500; letter-spacing: 0.03em; }
+    .nav-item.active { color: var(--teal); }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 2px;
+      background: var(--teal);
+      border-radius: 0 0 4px 4px;
+    }
+
+    .nav-item:hover { color: var(--teal); }
+    .nav-item:active { transform: scale(0.9); }
+
+    @media (min-width: 768px) { .app-container { max-width: 600px; padding: 32px 20px 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet" id="modalSheet"></div>
+  </div>
+
+  <div class="app-container">
+    <header class="header">
+      <a href="dashboard.html" class="back-btn" aria-label="Back">
+        <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+          <path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="header-info">
+        <h1>Settings</h1>
+        <p>Manage your account</p>
+      </div>
+    </header>
+
+    <div class="profile-card">
+      <div class="profile-avatar" id="profileAvatar">U</div>
+      <div class="profile-name" id="profileName">Loading...</div>
+      <div class="profile-email" id="profileEmail">—</div>
+      <div class="profile-uid" id="profileUid">UID: —</div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="profile-stat-label">Balance</div><div class="profile-stat-value teal" id="profileBalance">$0.00</div></div>
+        <div class="profile-stat"><div class="profile-stat-label">Referrals</div><div class="profile-stat-value gold" id="profileRefs">0</div></div>
+        <div class="profile-stat"><div class="profile-stat-label">Member Since</div><div class="profile-stat-value purple" id="profileSince">—</div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Account</div>
+      <div class="settings-list">
+        <div class="settings-item" data-modal="editProfile">
+          <div class="settings-item-left"><div class="settings-item-icon security">👤</div><div><div class="settings-item-text">Edit Profile</div><div class="settings-item-sub">Update your display name</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </div>
+        <div class="settings-item" data-modal="changePassword">
+          <div class="settings-item-left"><div class="settings-item-icon security">🔒</div><div><div class="settings-item-text">Change Password</div><div class="settings-item-sub">Update your account password</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </div>
+        <a href="history.html" class="settings-item" style="text-decoration:none;color:inherit;">
+          <div class="settings-item-left"><div class="settings-item-icon wallet">📋</div><div><div class="settings-item-text">Transaction History</div><div class="settings-item-sub">View all your transactions</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </a>
+        <a href="referrals.html" class="settings-item" style="text-decoration:none;color:inherit;">
+          <div class="settings-item-left"><div class="settings-item-icon wallet">👥</div><div><div class="settings-item-text">My Referrals</div><div class="settings-item-sub">View your downline network</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Support</div>
+      <div class="settings-list">
+        <div class="settings-item" data-modal="contactSupport">
+          <div class="settings-item-left"><div class="settings-item-icon support">💬</div><div><div class="settings-item-text">Contact Support</div><div class="settings-item-sub">Chat with us on WhatsApp</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </div>
+        <div class="settings-item" data-modal="helpCenter">
+          <div class="settings-item-left"><div class="settings-item-icon support">📖</div><div><div class="settings-item-text">Help Center</div><div class="settings-item-sub">FAQs & guides</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </div>
+        <div class="settings-item" data-modal="aboutApp">
+          <div class="settings-item-left"><div class="settings-item-icon about">ℹ️</div><div><div class="settings-item-text">About Circuit Vault</div><div class="settings-item-sub">Version 1.0.0</div></div></div>
+          <span class="settings-item-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-label">Danger Zone</div>
+      <div class="settings-list">
+        <div class="settings-item" data-modal="deleteAccount">
+          <div class="settings-item-left"><div class="settings-item-icon danger">⚠️</div><div><div class="settings-item-text" style="color:var(--danger);">Delete Account</div><div class="settings-item-sub">Permanently remove your account</div></div></div>
+          <span class="settings-item-arrow" style="color:var(--danger);">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="logout-section">
+      <button class="btn-logout" id="logoutBtn">
+        <span class="btn-text">🚪 Logout from Circuit Vault</span>
+        <span class="spinner"></span>
+      </button>
+    </div>
+
+    <div class="app-version">Circuit Vault v1.0.0 · 256-BIT ENCRYPTED</div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="14" y="2" width="8" height="8" rx="1.5"/><rect x="2" y="14" width="8" height="8" rx="1.5"/><rect x="14" y="14" width="8" height="8" rx="1.5"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="deposit.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v14M6 12l6 6 6-6"/><path d="M4 22h16"/></svg>
+      <span>Deposit</span>
+    </a>
+    <a href="plans.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Plans</span>
+    </a>
+    <a href="history.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,14"/></svg>
+      <span>History</span>
+    </a>
+    <a href="settings.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      await loadProfile();
+    });
+
+    async function loadProfile() {
+      if (!currentUser) return;
+      document.getElementById('profileAvatar').textContent = (currentUser.displayName || 'U').charAt(0).toUpperCase();
+      document.getElementById('profileName').textContent = currentUser.displayName || 'User';
+      document.getElementById('profileEmail').textContent = currentUser.email || '—';
+      document.getElementById('profileUid').textContent = `UID: ${currentUser.uid.slice(0, 12)}...`;
+      try {
+        const snap = await getDoc(doc(db, 'users', currentUser.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          document.getElementById('profileBalance').textContent = '$' + (d.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          if (d.createdAt) document.getElementById('profileSince').textContent = new Date(d.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+      } catch (e) { /* */ }
+      try {
+        const q = query(collection(db, 'users'), where('invitedBy', '==', currentUser.uid));
+        document.getElementById('profileRefs').textContent = (await getDocs(q)).size;
+      } catch (e) { document.getElementById('profileRefs').textContent = '0'; }
+    }
+
+    // ═══════════ MODAL SYSTEM ═══════════
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalSheet = document.getElementById('modalSheet');
+
+    function openModal(content) {
+      modalSheet.innerHTML = content;
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // ═══════════ EDIT PROFILE ═══════════
+    document.querySelector('[data-modal="editProfile"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title">Edit Profile</div>
+        <div class="modal-desc">Update your display name. This will be visible to your referrals.</div>
+        <input type="text" class="modal-input" id="editNameInput" placeholder="Enter new display name" value="${currentUser?.displayName || ''}" />
+        <div class="modal-error" id="editNameError"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Cancel</button>
+          <button class="modal-btn primary" id="saveNameBtn"><span class="btn-text">Save Changes</span><span class="spinner"></span></button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('saveNameBtn').addEventListener('click', async () => {
+          const name = document.getElementById('editNameInput').value.trim();
+          const errEl = document.getElementById('editNameError');
+          if (!name || name.length < 2) { errEl.textContent = 'Name must be at least 2 characters.'; return; }
+          errEl.textContent = '';
+          const btn = document.getElementById('saveNameBtn');
+          btn.classList.add('loading');
+          btn.disabled = true;
+          try {
+            await updateProfile(currentUser, { displayName: name });
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+            toast('success', 'Profile Updated', 'Display name changed successfully.');
+            closeModal();
+          } catch (err) {
+            errEl.textContent = err.message || 'Update failed.';
+          } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+          }
+        });
+      }, 100);
+    });
+
+    // ═══════════ CHANGE PASSWORD ═══════════
+    document.querySelector('[data-modal="changePassword"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title">Change Password</div>
+        <div class="modal-desc">Enter your current password and a new password.</div>
+        <input type="password" class="modal-input" id="currentPassInput" placeholder="Current password" />
+        <input type="password" class="modal-input" id="newPassInput" placeholder="New password (min. 8 characters)" />
+        <input type="password" class="modal-input" id="confirmPassInput" placeholder="Confirm new password" />
+        <div class="modal-error" id="passError"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Cancel</button>
+          <button class="modal-btn primary" id="changePassBtn"><span class="btn-text">Update Password</span><span class="spinner"></span></button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('changePassBtn').addEventListener('click', async () => {
+          const current = document.getElementById('currentPassInput').value;
+          const newPass = document.getElementById('newPassInput').value;
+          const confirm = document.getElementById('confirmPassInput').value;
+          const errEl = document.getElementById('passError');
+          if (!current) { errEl.textContent = 'Enter your current password.'; return; }
+          if (newPass.length < 8) { errEl.textContent = 'New password must be at least 8 characters.'; return; }
+          if (newPass !== confirm) { errEl.textContent = 'Passwords do not match.'; return; }
+          errEl.textContent = '';
+          const btn = document.getElementById('changePassBtn');
+          btn.classList.add('loading');
+          btn.disabled = true;
+          try {
+            const credential = EmailAuthProvider.credential(currentUser.email, current);
+            await reauthenticateWithCredential(currentUser, credential);
+            await updatePassword(currentUser, newPass);
+            toast('success', 'Password Changed', 'Your password has been updated.');
+            closeModal();
+          } catch (err) {
+            if (err.code === 'auth/wrong-password') errEl.textContent = 'Current password is incorrect.';
+            else if (err.code === 'auth/too-many-requests') errEl.textContent = 'Too many attempts. Try again later.';
+            else errEl.textContent = err.message || 'Password change failed.';
+          } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+          }
+        });
+      }, 100);
+    });
+
+    // ═══════════ CONTACT SUPPORT (WhatsApp) ═══════════
+    document.querySelector('[data-modal="contactSupport"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title">💬 Contact Support</div>
+        <div class="modal-desc">Chat with our support team directly on WhatsApp. We typically respond within minutes during business hours.</div>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--teal);margin-bottom:4px;">+234 916 737 8733</div>
+          <div style="font-size:11px;color:var(--text-muted);">Available 8AM – 8PM (Mon–Sat)</div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Close</button>
+          <button class="modal-btn primary" id="whatsappBtn" style="background:#25D366;color:#fff;">💬 Open WhatsApp</button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('whatsappBtn').addEventListener('click', () => {
+          const phone = '2349167378733';
+          const message = encodeURIComponent(`Hello Circuit Vault Support, I need help with my account. My username is ${currentUser?.displayName || 'User'}.`);
+          window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+        });
+      }, 100);
+    });
+
+    // ═══════════ HELP CENTER (FAQs) ═══════════
+    document.querySelector('[data-modal="helpCenter"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title">📖 Help Center</div>
+        <div class="modal-desc">Frequently asked questions about Circuit Vault.</div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="const a=this.nextElementSibling;const arrow=this.querySelector('.faq-arrow');a.classList.toggle('open');arrow.classList.toggle('open');">
+            <span>How do I make a deposit?</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer">Go to the <strong>Deposit</strong> tab, enter the amount (minimum $4), proceed to see the wallet addresses, send USDT on BEP20 or TRC20, then upload your payment receipt for verification. Funds are credited within 24 hours after confirmation.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="const a=this.nextElementSibling;const arrow=this.querySelector('.faq-arrow');a.classList.toggle('open');arrow.classList.toggle('open');">
+            <span>How do investment plans work?</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer">Purchase a plan from the <strong>Plans</strong> tab. Each plan gives you daily returns for 90 days. Your capital is returned at the end. You can buy each plan up to 5 times. Daily earnings are auto-credited every 24 hours.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="const a=this.nextElementSibling;const arrow=this.querySelector('.faq-arrow');a.classList.toggle('open');arrow.classList.toggle('open');">
+            <span>How do referral bonuses work?</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer">When someone registers with your referral link and purchases a plan, you earn <strong>10%</strong> (Level 1), <strong>2%</strong> (Level 2), and <strong>1%</strong> (Level 3) of their plan price. Bonuses are credited instantly to your balance.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="const a=this.nextElementSibling;const arrow=this.querySelector('.faq-arrow');a.classList.toggle('open');arrow.classList.toggle('open');">
+            <span>What are the withdrawal rules?</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer">Withdrawals are processed <strong>8AM–5PM (Mon–Sat)</strong>. No withdrawals on Sundays. Minimum withdrawal is $1. Fee is <strong>4%</strong>. You can withdraw once per day. Processing takes up to 24 hours.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="const a=this.nextElementSibling;const arrow=this.querySelector('.faq-arrow');a.classList.toggle('open');arrow.classList.toggle('open');">
+            <span>How does VIP monthly salary work?</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer">VIP salary is based on your direct referral count:<br>• VIP 1: 10 refs → $10/month<br>• VIP 2: 20 refs → $20/month<br>• VIP 3: 30 refs → $30/month<br>• VIP 4: 40 refs → $40/month<br>• VIP 5: 50 refs → $50/month<br>Salary is credited on the 1st of each month.</div>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <button class="modal-btn cancel" style="width:auto;padding:12px 24px;" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Close</button>
+        </div>
+      `);
+    });
+
+    // ═══════════ ABOUT ═══════════
+    document.querySelector('[data-modal="aboutApp"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div style="text-align:center;">
+          <div style="font-size:40px;margin-bottom:12px;">🔷</div>
+          <div class="modal-title">Circuit Vault</div>
+          <div class="modal-desc">Engineered Wealth · USD Vault</div>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.8;text-align:center;">
+          <p>Version <strong style="color:var(--teal);">1.0.0</strong></p>
+          <p>256-Bit Encrypted · Firestore Secured</p>
+          <p>USD Denominated Investment Platform</p>
+          <p style="margin-top:12px;">Built for wealth creation through daily returns, referral commissions, and VIP monthly salaries.</p>
+          <p style="margin-top:12px;font-size:11px;color:#4d5a66;">© 2026 Circuit Vault. All rights reserved.</p>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <button class="modal-btn cancel" style="width:auto;padding:12px 24px;" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Close</button>
+        </div>
+      `);
+    });
+
+    // ═══════════ DELETE ACCOUNT ═══════════
+    document.querySelector('[data-modal="deleteAccount"]').addEventListener('click', () => {
+      openModal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title" style="color:var(--danger);">⚠️ Delete Account</div>
+        <div class="modal-desc">This action <strong>cannot be undone</strong>. All your data including balance, plans, referrals, and transaction history will be permanently deleted.</div>
+        <input type="text" class="modal-input" id="deleteConfirmInput" placeholder='Type "DELETE" to confirm' style="text-align:center;font-weight:700;" />
+        <div class="modal-error" id="deleteError"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.querySelector('.modal-overlay').classList.remove('active');document.body.style.overflow='';">Cancel</button>
+          <button class="modal-btn danger" id="confirmDeleteBtn"><span class="btn-text">Permanently Delete</span><span class="spinner"></span></button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+          const input = document.getElementById('deleteConfirmInput').value.trim();
+          const errEl = document.getElementById('deleteError');
+          if (input !== 'DELETE') { errEl.textContent = 'Type DELETE to confirm.'; return; }
+          errEl.textContent = '';
+          const btn = document.getElementById('confirmDeleteBtn');
+          btn.classList.add('loading');
+          btn.disabled = true;
+          try {
+            await currentUser.delete();
+            toast('success', 'Account Deleted', 'Your account has been permanently removed.');
+            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+          } catch (err) {
+            if (err.code === 'auth/requires-recent-login') {
+              errEl.textContent = 'Please logout and login again first for security.';
+            } else {
+              errEl.textContent = err.message || 'Deletion failed.';
+            }
+            btn.classList.remove('loading');
+            btn.disabled = false;
+          }
+        });
+      }, 100);
+    });
+
+    // ═══════════ LOGOUT ═══════════
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('logoutBtn');
+      btn.classList.add('loading');
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (e) {
+        toast('error', 'Logout Failed', 'Please try again.');
+        btn.classList.remove('loading');
+      }
+    });
+  </script>
+</body>
+</html>
