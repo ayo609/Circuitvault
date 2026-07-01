@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circuit Vault — Admin Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --red: #dc2626;
+      --radius: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background effects */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 20%, transparent 70%);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(220, 38, 38, 0.06) 0%, rgba(232, 184, 76, 0.03) 40%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Admin badge */
+    .admin-badge {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .admin-shield {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(239, 68, 68, 0.08));
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 24px;
+    }
+
+    .admin-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--danger);
+    }
+
+    /* Brand */
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .brand-mark svg { width: 24px; height: 24px; }
+
+    h1.wordmark {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tagline {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* Panel */
+    .panel {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+    }
+
+    .panel-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .panel-header h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .panel-header p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      color: var(--text-muted);
+      z-index: 1;
+    }
+
+    input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px 14px 44px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input::placeholder { color: #4a5661; font-size: 13px; }
+
+    input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0, 217, 181, 0.1);
+    }
+
+    input.error {
+      border-color: var(--danger);
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      transition: color 0.2s;
+    }
+
+    .toggle-password:hover { color: var(--gold); }
+
+    .error-msg {
+      font-size: 10.5px;
+      color: var(--danger);
+      margin-top: 5px;
+      min-height: 14px;
+    }
+
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-bottom: 1px dashed #3a4753;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .forgot-link:hover { color: var(--gold); border-color: var(--gold); }
+
+    button.cta {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 14.5px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #12100a;
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.25s, filter 0.2s;
+      box-shadow: 0 10px 24px -10px rgba(232, 184, 76, 0.25);
+    }
+
+    button.cta:hover { filter: brightness(1.08); }
+    button.cta:active { transform: translateY(1px) scale(0.995); }
+    button.cta:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+
+    button.cta .spinner {
+      display: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 2px solid rgba(18, 16, 10, 0.35);
+      border-top-color: #12100a;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    button.cta.loading .btn-text { display: none; }
+    button.cta.loading .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line-soft);
+    }
+
+    .divider span {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #4d5a66;
+      text-transform: uppercase;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--teal); }
+
+    .security-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: #39434d;
+    }
+
+    /* Toast */
+    .toast-stack {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 217, 181, 0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229, 86, 107, 0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232, 184, 76, 0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close {
+      background: none; border: none; color: #4d5a66;
+      cursor: pointer; font-size: 13px; padding: 2px;
+    }
+    .toast-close:hover { color: var(--text); }
+
+    @media (max-width: 480px) {
+      .panel { padding: 24px 20px; }
+      .login-container { max-width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <div class="login-container">
+    <!-- Admin Badge -->
+    <div class="admin-badge">
+      <div class="admin-shield">🛡️</div>
+      <span class="admin-label">Admin Access Only</span>
+    </div>
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="4" stroke="#e8b84c" stroke-width="1.4"/>
+          <circle cx="8" cy="8" r="1.6" fill="#00d9b5"/>
+          <circle cx="16" cy="16" r="1.6" fill="#00d9b5"/>
+          <path d="M8 9.6V14a2 2 0 0 0 2 2h4.4" stroke="#00d9b5" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="wordmark">CIRCUIT VAULT</h1>
+      <p class="tagline">Administration Panel</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Admin Sign In</h2>
+        <p>Enter your credentials to access the admin panel</p>
+      </div>
+
+      <form id="adminLoginForm" novalidate>
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Admin Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="admin@circuitvault.com"
+              autocomplete="email"
+              autofocus
+            />
+          </div>
+          <div class="error-msg" id="emailError"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button type="button" class="toggle-password" data-target="password">SHOW</button>
+          </div>
+          <div class="error-msg" id="passwordError"></div>
+        </div>
+
+        <!-- PIN Code (2FA placeholder) -->
+        <div class="form-group">
+          <label for="pinCode">Security PIN <span style="text-transform:none;letter-spacing:0;color:#4d5a66;font-style:italic;">(optional)</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔐</span>
+            <input
+              type="password"
+              id="pinCode"
+              name="pinCode"
+              placeholder="6-digit admin PIN"
+              maxlength="6"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              autocomplete="off"
+            />
+          </div>
+          <div class="error-msg" id="pinError"></div>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox" id="rememberMe" />
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="cta" id="submitBtn">
+          <span class="btn-text">🔓 Unlock Admin Panel</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <!-- Back to User Login -->
+      <a href="login.html" class="back-link">← Return to User Login</a>
+    </div>
+
+    <!-- Security Footer -->
+    <div class="security-footer">
+      ADMIN PANEL · 256-BIT ENCRYPTED · ACTIVITY LOGGED
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      browserSessionPersistence,
+      setPersistence,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      query,
+      where,
+      getDocs,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Set session persistence
+    setPersistence(auth, browserSessionPersistence).catch(() => {});
+
+    /* ═══════════ Toast ═══════════ */
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    /* ═══════════ Toggle Password ═══════════ */
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        const showing = target.type === 'text';
+        target.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? 'SHOW' : 'HIDE';
+      });
+    });
+
+    /* ═══════════ PIN Input — allow only numbers ═══════════ */
+    const pinInput = document.getElementById('pinCode');
+    pinInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+
+    /* ═══════════ Check if already logged in as admin ═══════════ */
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in — check if they're an admin
+        const isAdmin = await checkAdminStatus(user.uid);
+        if (isAdmin) {
+          // Already logged in as admin — redirect to dashboard
+          window.location.href = 'admin-dashboard.html';
+        } else {
+          // Logged in but not admin — sign out
+          // (don't auto sign out, just let them use the form)
+        }
+      }
+    });
+
+    /* ═══════════ Check Admin Status ═══════════ */
+    async function checkAdminStatus(uid) {
+      try {
+        // Check admins collection
+        const snap = await getDoc(doc(db, 'admins', uid));
+        if (snap.exists() && snap.data().status === 'active') return true;
+
+        // Fallback: check if email is in adminEmails collection
+        const userSnap = await getDoc(doc(db, 'users', uid));
+        if (userSnap.exists()) {
+          const email = userSnap.data().email;
+          if (email) {
+            const adminEmailSnap = await getDoc(doc(db, 'adminEmails', email.toLowerCase().replace(/\./g, '_')));
+            if (adminEmailSnap.exists()) return true;
+          }
+        }
+
+        return false;
+      } catch (e) {
+        console.error('Admin check error:', e);
+        return false;
+      }
+    }
+
+    /* ═══════════ Get Admin Email List ═══════════ */
+    async function isEmailAuthorized(email) {
+      try {
+        const cleanEmail = email.toLowerCase().trim();
+        // Check adminEmails collection
+        const key = cleanEmail.replace(/\./g, '_');
+        const snap = await getDoc(doc(db, 'adminEmails', key));
+        return snap.exists();
+      } catch (e) {
+        return false;
+      }
+    }
+
+    /* ═══════════ Form Submit ═══════════ */
+    const form = document.getElementById('adminLoginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const emailEl = document.getElementById('email');
+    const passwordEl = document.getElementById('password');
+    const pinEl = document.getElementById('pinCode');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const pinError = document.getElementById('pinError');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = emailEl.value.trim();
+      const password = passwordEl.value;
+      const pin = pinEl.value.trim();
+
+      // Clear errors
+      emailError.textContent = '';
+      passwordError.textContent = '';
+      pinError.textContent = '';
+      emailEl.classList.remove('error');
+      passwordEl.classList.remove('error');
+      pinEl.classList.remove('error');
+
+      // Validate email
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailError.textContent = 'Enter a valid admin email address.';
+        emailEl.classList.add('error');
+        emailEl.focus();
+        return;
+      }
+
+      // Validate password
+      if (!password || password.length < 6) {
+        passwordError.textContent = 'Password must be at least 6 characters.';
+        passwordEl.classList.add('error');
+        passwordEl.focus();
+        return;
+      }
+
+      // Check if email is authorized as admin
+      const isAuthorized = await isEmailAuthorized(email);
+      if (!isAuthorized) {
+        emailError.textContent = 'This email is not authorized as an admin.';
+        emailEl.classList.add('error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      toast('info', 'Authenticating...', 'Verifying admin credentials...', 3000);
+
+      try {
+        // Sign in
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        // Double-check admin status after login
+        const isAdmin = await checkAdminStatus(uid);
+        if (!isAdmin) {
+          // Not an admin — sign out immediately
+          await auth.signOut();
+          emailError.textContent = 'Access denied. Admin privileges required.';
+          emailEl.classList.add('error');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('loading');
+          toast('error', 'Access Denied', 'This account does not have admin privileges.');
+          return;
+        }
+
+        // Log admin login
+        try {
+          await setDoc(doc(db, 'adminLogs', `login_${Date.now()}_${uid.slice(0, 8)}`), {
+            adminId: uid,
+            adminEmail: email,
+            action: 'login',
+            ipAddress: 'logged',
+            userAgent: navigator.userAgent,
+            createdAt: serverTimestamp()
+          });
+        } catch (e) { /* log failure shouldn't block login */ }
+
+        // Success
+        toast('success', 'Welcome Admin', 'Redirecting to admin dashboard...', 3000);
+        setTimeout(() => {
+          window.location.href = 'admin-dashboard.html';
+        }, 1000);
+
+      } catch (err) {
+        console.error('Admin login error:', err);
+        let msg = 'Something went wrong. Please try again.';
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+          msg = 'Invalid email or password.';
+          passwordError.textContent = 'Invalid email or password.';
+          passwordEl.classList.add('error');
+        } else if (err.code === 'auth/too-many-requests') {
+          msg = 'Too many attempts — please wait and try again.';
+        } else if (err.code === 'auth/invalid-email') {
+          msg = 'Invalid email format.';
+          emailError.textContent = 'Invalid email format.';
+          emailEl.classList.add('error');
+        } else if (err.code === 'auth/network-request-failed') {
+          msg = 'Network error — check your connection.';
+        }
+        toast('error', 'Login Failed', msg);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+      }
+    });
+
+    // Allow Enter key to submit
+    passwordEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
+    });
+    pinEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
+    });
+  </script>
+</body>
+</html>
