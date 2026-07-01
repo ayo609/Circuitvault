@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — History</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 72px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 20%, transparent 70%);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      width: 1000px;
+      height: 1000px;
+      transform: translateX(-50%);
+      background: radial-gradient(circle at 50% 40%, rgba(0, 217, 181, 0.06) 0%, rgba(232, 184, 76, 0.03) 35%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 24px 16px 0;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding: 0 4px;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .back-btn:active { transform: scale(0.95); }
+
+    .header-info h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
+
+    .header-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Summary cards */
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .summary-card-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .summary-card-value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .summary-card-value.green { color: var(--teal); }
+    .summary-card-value.red { color: var(--danger); }
+    .summary-card-value.gold { color: var(--gold); }
+
+    /* Filter chips */
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 0 0 12px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .filter-chip:hover { border-color: var(--teal); color: var(--teal); }
+    .filter-chip.active { background: rgba(0, 217, 181, 0.1); border-color: var(--teal); color: var(--teal); }
+
+    /* Transaction list */
+    .txn-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+    .txn-card {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      transition: all 0.2s;
+    }
+
+    .txn-card:hover { border-color: var(--teal); }
+
+    .txn-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .txn-type-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .txn-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .txn-icon.deposit { background: rgba(0, 217, 181, 0.12); color: var(--teal); }
+    .txn-icon.withdraw { background: rgba(229, 86, 107, 0.12); color: var(--danger); }
+    .txn-icon.daily_earning { background: rgba(232, 184, 76, 0.12); color: var(--gold); }
+    .txn-icon.plan_purchase { background: rgba(167, 139, 250, 0.12); color: var(--purple); }
+    .txn-icon.referral_bonus { background: rgba(232, 184, 76, 0.12); color: var(--gold); }
+    .txn-icon.yield { background: rgba(232, 184, 76, 0.12); color: var(--gold); }
+
+    .txn-type-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .txn-type-date {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .txn-amount {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .txn-amount.credit { color: var(--teal); }
+    .txn-amount.debit { color: var(--danger); }
+
+    .txn-details {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .txn-status {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .txn-status.credited,
+    .txn-status.completed,
+    .txn-status.active { background: rgba(0, 217, 181, 0.12); color: var(--teal); }
+
+    .txn-status.pending { background: rgba(232, 184, 76, 0.12); color: var(--gold); }
+
+    .txn-status.failed,
+    .txn-status.rejected { background: rgba(229, 86, 107, 0.12); color: var(--danger); }
+
+    .txn-network {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--text-muted);
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .empty-state span { font-size: 12px; }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 217, 181, 0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229, 86, 107, 0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232, 184, 76, 0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      background: linear-gradient(180deg, rgba(12, 17, 25, 0.95) 0%, rgba(10, 15, 22, 0.98) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 4px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 6px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      position: relative;
+      min-width: 52px;
+      cursor: pointer;
+    }
+
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item span { font-size: 9px; font-weight: 500; letter-spacing: 0.03em; }
+    .nav-item.active { color: var(--teal); }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 2px;
+      background: var(--teal);
+      border-radius: 0 0 4px 4px;
+    }
+
+    .nav-item:hover { color: var(--teal); }
+    .nav-item:active { transform: scale(0.9); }
+
+    @media (min-width: 768px) { .app-container { max-width: 600px; padding: 32px 20px 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <div class="app-container">
+    <header class="header">
+      <a href="dashboard.html" class="back-btn" aria-label="Back">
+        <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+          <path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="header-info">
+        <h1>Transaction History</h1>
+        <p>All your account activity</p>
+      </div>
+    </header>
+
+    <!-- Summary -->
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="summary-card-label">Total Credits</div>
+        <div class="summary-card-value green" id="totalCredits">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Total Debits</div>
+        <div class="summary-card-value red" id="totalDebits">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Transactions</div>
+        <div class="summary-card-value gold" id="txnCount">0</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-row" id="filterRow">
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="deposit">↓ Deposits</button>
+      <button class="filter-chip" data-filter="withdraw">↑ Withdrawals</button>
+      <button class="filter-chip" data-filter="daily_earning">✦ Earnings</button>
+      <button class="filter-chip" data-filter="plan_purchase">📦 Plans</button>
+      <button class="filter-chip" data-filter="referral_bonus">💰 Bonuses</button>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="txn-list" id="txnList">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>Loading transactions...</p>
+        <span>Fetching your activity</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="14" y="2" width="8" height="8" rx="1.5"/><rect x="2" y="14" width="8" height="8" rx="1.5"/><rect x="14" y="14" width="8" height="8" rx="1.5"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="deposit.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v14M6 12l6 6 6-6"/><path d="M4 22h16"/></svg>
+      <span>Deposit</span>
+    </a>
+    <a href="plans.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Plans</span>
+    </a>
+    <a href="history.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,14"/></svg>
+      <span>History</span>
+    </a>
+    <a href="settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentUser = null;
+    let allTransactions = [];
+    let currentFilter = 'all';
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      await loadTransactions();
+    });
+
+    // ═══════════ Filter Chips ═══════════
+    document.getElementById('filterRow').addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-chip')) return;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      renderTransactions();
+    });
+
+    // ═══════════ Load Transactions ═══════════
+    async function loadTransactions() {
+      const list = document.getElementById('txnList');
+      try {
+        const q = query(
+          collection(db, 'users', currentUser.uid, 'transactions'),
+          orderBy('createdAt', 'desc'),
+          limit(100)
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No transactions yet</p><span>Your activity will appear here</span></div>`;
+          updateSummary([]);
+          return;
+        }
+
+        allTransactions = [];
+        snap.forEach(doc => {
+          allTransactions.push({ id: doc.id, ...doc.data() });
+        });
+
+        updateSummary(allTransactions);
+        renderTransactions();
+
+      } catch (e) {
+        console.error('Transaction load error:', e);
+        list.innerHTML = `<div class="empty-state"><p>Could not load transactions</p><span>Please try again later</span></div>`;
+      }
+    }
+
+    // ═══════════ Update Summary ═══════════
+    function updateSummary(transactions) {
+      let totalCredits = 0;
+      let totalDebits = 0;
+
+      transactions.forEach(t => {
+        const amount = t.amount || 0;
+        if (t.type === 'withdraw' || t.type === 'plan_purchase') {
+          totalDebits += amount;
+        } else {
+          totalCredits += amount;
+        }
+      });
+
+      document.getElementById('totalCredits').textContent =
+        '$' + totalCredits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('totalDebits').textContent =
+        '$' + totalDebits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('txnCount').textContent = transactions.length;
+    }
+
+    // ═══════════ Render Transactions ═══════════
+    function renderTransactions() {
+      const list = document.getElementById('txnList');
+
+      const filtered = currentFilter === 'all'
+        ? allTransactions
+        : allTransactions.filter(t => t.type === currentFilter);
+
+      if (filtered.length === 0) {
+        const filterNames = {
+          deposit: 'deposits',
+          withdraw: 'withdrawals',
+          daily_earning: 'daily earnings',
+          plan_purchase: 'plan purchases',
+          referral_bonus: 'referral bonuses'
+        };
+        list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>No ${filterNames[currentFilter] || 'transactions'} found</p><span>Try a different filter</span></div>`;
+        return;
+      }
+
+      list.innerHTML = '';
+
+      filtered.forEach(t => {
+        const type = t.type || 'unknown';
+        const amount = t.amount || 0;
+        const isDebit = type === 'withdraw' || type === 'plan_purchase';
+        const prefix = isDebit ? '-' : '+';
+        const amountClass = isDebit ? 'debit' : 'credit';
+        const status = t.status || 'credited';
+        const description = t.description || formatTypeName(type);
+        const network = t.network || '';
+        const planName = t.planName || '';
+
+        const time = t.createdAt
+          ? new Date(t.createdAt.seconds * 1000)
+          : new Date();
+
+        const dateStr = time.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        // Icon mapping
+        const iconMap = {
+          deposit: { icon: '↓', cls: 'deposit' },
+          withdraw: { icon: '↑', cls: 'withdraw' },
+          daily_earning: { icon: '✦', cls: 'daily_earning' },
+          yield: { icon: '✦', cls: 'yield' },
+          plan_purchase: { icon: '📦', cls: 'plan_purchase' },
+          referral_bonus: { icon: '💰', cls: 'referral_bonus' }
+        };
+
+        const iconData = iconMap[type] || { icon: '•', cls: 'deposit' };
+
+        list.innerHTML += `
+          <div class="txn-card">
+            <div class="txn-top">
+              <div class="txn-type-row">
+                <div class="txn-icon ${iconData.cls}">${iconData.icon}</div>
+                <div>
+                  <div class="txn-type-name">${description}</div>
+                  <div class="txn-type-date">${dateStr} · ${timeStr}</div>
+                </div>
+              </div>
+              <div class="txn-amount ${amountClass}">${prefix}$${amount.toFixed(2)}</div>
+            </div>
+            <div class="txn-details">
+              <span class="txn-status ${status}">${status}</span>
+              ${network ? `<span class="txn-network">${network}</span>` : ''}
+              ${planName ? `<span class="txn-network">${planName}</span>` : ''}
+              ${t.daysCredited ? `<span class="txn-network">${t.daysCredited} day${t.daysCredited > 1 ? 's' : ''}</span>` : ''}
+            </div>
+          </div>`;
+      });
+    }
+
+    function formatTypeName(type) {
+      const names = {
+        deposit: 'USDT Deposit',
+        withdraw: 'Withdrawal',
+        daily_earning: 'Daily Earnings',
+        yield: 'Yield Return',
+        plan_purchase: 'Plan Purchase',
+        referral_bonus: 'Referral Bonus'
+      };
+      return names[type] || type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+  </script>
+</body>
+</html>
