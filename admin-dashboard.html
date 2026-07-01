@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Admin Users</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --sidebar-w: 230px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════ SIDEBAR ═══════════ */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #0a0f18 0%, #060a10 100%);
+      border-right: 1px solid var(--line);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0 16px;
+      overflow-y: auto;
+    }
+
+    .side-brand {
+      text-align: center;
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 8px;
+    }
+
+    .side-brand .shield {
+      width: 36px; height: 36px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 18px;
+    }
+
+    .side-brand .name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .side-brand .role {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--danger);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .side-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+    }
+
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .side-nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+    .side-nav a.active { background: rgba(220, 38, 38, 0.1); color: #f87171; }
+    .side-nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+    .side-nav .nav-section {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4d5a66;
+      padding: 16px 14px 6px;
+    }
+
+    .side-footer { padding: 12px 16px; border-top: 1px solid var(--line); }
+    .side-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; color: var(--danger);
+      text-decoration: none; transition: background 0.2s;
+    }
+    .side-footer a:hover { background: rgba(229, 86, 107, 0.1); }
+
+    /* ═══════════ MAIN ═══════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 28px 32px 40px;
+      position: relative;
+      z-index: 1;
+      max-width: calc(100vw - var(--sidebar-w));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .topbar h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Search & Filter */
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0, 217, 181, 0.1); }
+
+    .filter-select {
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-select:focus { border-color: var(--teal); }
+
+    /* Table */
+    .table-container {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    th {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 14px 16px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--line);
+    }
+
+    td {
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.01); }
+    tr:last-child td { border-bottom: none; }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 217, 181, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .status-badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-badge.active { background: rgba(0, 217, 181, 0.12); color: var(--teal); }
+    .status-badge.suspended { background: rgba(229, 86, 107, 0.12); color: var(--danger); }
+    .status-badge.inactive { background: rgba(124, 136, 148, 0.12); color: var(--text-muted); }
+
+    .action-btns { display: flex; gap: 6px; }
+
+    .btn-sm {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-muted);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-sm:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-sm.danger { color: var(--danger); border-color: rgba(229, 86, 107, 0.3); }
+    .btn-sm.danger:hover { background: rgba(229, 86, 107, 0.1); }
+    .btn-sm.warn { color: var(--gold); border-color: rgba(232, 184, 76, 0.3); }
+    .btn-sm.warn:hover { background: rgba(232, 184, 76, 0.1); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .page-btn {
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .page-btn.active { background: rgba(0, 217, 181, 0.1); border-color: var(--teal); color: var(--teal); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px 24px;
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal h3 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .modal .close-btn {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal .close-btn:hover { color: var(--text); }
+
+    .modal-input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    .modal-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0, 217, 181, 0.1); }
+
+    .modal-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.primary {
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      color: #12100a;
+    }
+
+    .modal-btn.primary:hover { filter: brightness(1.08); }
+
+    .modal-btn.cancel {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+    }
+
+    .modal-btn.cancel:hover { border-color: var(--teal); color: var(--teal); }
+
+    .modal-btn.danger {
+      background: rgba(229, 86, 107, 0.1);
+      border: 1px solid rgba(229, 86, 107, 0.3);
+      color: var(--danger);
+    }
+
+    .modal-btn.danger:hover { background: rgba(229, 86, 107, 0.2); }
+
+    .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .user-detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 13px;
+    }
+
+    .user-detail-row .label { color: var(--text-muted); }
+    .user-detail-row .value { font-weight: 500; }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 217, 181, 0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229, 86, 107, 0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232, 184, 76, 0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .side-brand .name, .side-brand .role, .side-nav a span, .side-nav .nav-section, .side-footer a span { display: none; }
+      .side-nav a, .side-footer a { justify-content: center; padding: 10px; }
+      .main { margin-left: 60px; padding: 16px; max-width: calc(100vw - 60px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="shield">🛡️</div>
+      <div class="name">CIRCUIT VAULT</div>
+      <div class="role">Admin Panel</div>
+    </div>
+    <nav class="side-nav">
+      <a href="admin-dashboard.html"><span class="nav-icon">📊</span> <span>Dashboard</span></a>
+      <div class="nav-section">Management</div>
+      <a href="admin-users.html" class="active"><span class="nav-icon">👥</span> <span>Users</span></a>
+      <a href="admin-deposits.html"><span class="nav-icon">💰</span> <span>Deposits</span></a>
+      <a href="admin-withdrawals.html"><span class="nav-icon">💸</span> <span>Withdrawals</span></a>
+      <a href="admin-plans.html"><span class="nav-icon">📦</span> <span>Plans</span></a>
+      <div class="nav-section">Network</div>
+      <a href="admin-referrals.html"><span class="nav-icon">🔗</span> <span>Referrals</span></a>
+      <a href="admin-vip.html"><span class="nav-icon">👑</span> <span>VIP</span></a>
+      <div class="nav-section">System</div>
+      <a href="admin-settings.html"><span class="nav-icon">⚙️</span> <span>Settings</span></a>
+      <a href="admin-logs.html"><span class="nav-icon">📋</span> <span>Logs</span></a>
+    </nav>
+    <div class="side-footer">
+      <a href="admin-login.html" id="logoutSidebar"><span style="font-size:15px;">🚪</span> <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1>👥 User Management</h1>
+      <span style="color:var(--text-muted);font-size:12px;" id="userCount">— users</span>
+    </div>
+
+    <div class="controls-row">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search by username, email, or UID..." />
+      <select class="filter-select" id="filterStatus">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="suspended">Suspended</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Balance</th>
+            <th>Status</th>
+            <th>Referrals</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr><td colspan="7"><div class="empty-state">Loading users...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp,
+      collection, query, where, getDocs, orderBy, limit, increment
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalContent = document.getElementById('modalContent');
+
+    function openModal(html) { modalContent.innerHTML = html; modalOverlay.classList.add('active'); }
+    function closeModal() { modalOverlay.classList.remove('active'); }
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+    let allUsers = [];
+    let currentAdmin = null;
+    const PER_PAGE = 15;
+    let currentPage = 1;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'admin-login.html'; return; }
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = 'admin-login.html'; return; }
+      currentAdmin = user;
+      loadUsers();
+    });
+
+    document.getElementById('logoutSidebar').addEventListener('click', async (e) => {
+      e.preventDefault(); await signOut(auth); window.location.href = 'admin-login.html';
+    });
+
+    document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
+    document.getElementById('filterStatus').addEventListener('change', () => { currentPage = 1; renderTable(); });
+
+    async function loadUsers() {
+      try {
+        const snap = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(200)));
+        allUsers = [];
+        snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+        document.getElementById('userCount').textContent = `${allUsers.length} users`;
+        renderTable();
+      } catch (e) {
+        console.error('Load users error:', e);
+        document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7"><div class="empty-state">Error loading users. Check console.</div></td></tr>';
+      }
+    }
+
+    function getFilteredUsers() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const status = document.getElementById('filterStatus').value;
+      return allUsers.filter(u => {
+        const matchSearch = !search ||
+          (u.username || '').toLowerCase().includes(search) ||
+          (u.email || '').toLowerCase().includes(search) ||
+          (u.uid || '').toLowerCase().includes(search);
+        const matchStatus = status === 'all' || (u.status || 'active') === status;
+        return matchSearch && matchStatus;
+      });
+    }
+
+    function renderTable() {
+      const filtered = getFilteredUsers();
+      const totalPages = Math.ceil(filtered.length / PER_PAGE);
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageUsers = filtered.slice(start, start + PER_PAGE);
+      const tbody = document.getElementById('usersTableBody');
+
+      if (pageUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">No users found</div></td></tr>';
+      } else {
+        tbody.innerHTML = pageUsers.map(u => {
+          const initial = (u.username || 'U').charAt(0).toUpperCase();
+          const balance = (u.balance || 0).toFixed(2);
+          const refs = u._refCount ?? '—';
+          const joinDate = u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+          const status = u.status || 'active';
+          return `
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">${initial}</div>
+                  <div>
+                    <div style="font-weight:600;">${u.username || 'Anonymous'}</div>
+                    <div style="font-size:10px;color:var(--text-muted);">${u.uid?.slice(0, 10)}...</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-size:12px;color:var(--text-muted);">${u.email || '—'}</td>
+              <td style="font-family:'Space Grotesk',sans-serif;font-weight:600;">$${balance}</td>
+              <td><span class="status-badge ${status}">${status}</span></td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${refs}</td>
+              <td style="font-size:11px;color:var(--text-muted);">${joinDate}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-sm" data-action="view" data-uid="${u.uid}">👁 View</button>
+                  <button class="btn-sm warn" data-action="fund" data-uid="${u.uid}">+Fund</button>
+                  <button class="btn-sm warn" data-action="deduct" data-uid="${u.uid}" style="color:#f59e0b;border-color:rgba(245,158,11,0.3);">-Deduct</button>
+                  ${status === 'active'
+                    ? `<button class="btn-sm danger" data-action="suspend" data-uid="${u.uid}">Suspend</button>`
+                    : `<button class="btn-sm" data-action="activate" data-uid="${u.uid}" style="color:var(--teal);">Activate</button>`}
+                  <button class="btn-sm danger" data-action="delete" data-uid="${u.uid}">🗑</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+      }
+
+      // Pagination
+      const pag = document.getElementById('pagination');
+      if (totalPages <= 1) { pag.innerHTML = ''; return; }
+      let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">←</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+      }
+      html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">→</button>`;
+      pag.innerHTML = html;
+      pag.querySelectorAll('.page-btn:not([disabled])').forEach(b => {
+        b.addEventListener('click', () => { currentPage = parseInt(b.dataset.page); renderTable(); });
+      });
+    }
+
+    // ═══════════ ACTION HANDLERS ═══════════
+    document.getElementById('usersTableBody').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-sm');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const uid = btn.dataset.uid;
+      const user = allUsers.find(u => u.uid === uid);
+      if (!user) return;
+
+      switch (action) {
+        case 'view': viewUser(user); break;
+        case 'fund': fundUser(user); break;
+        case 'deduct': deductUser(user); break;
+        case 'suspend': await toggleStatus(user, 'suspended'); break;
+        case 'activate': await toggleStatus(user, 'active'); break;
+        case 'delete': deleteUser(user); break;
+      }
+    });
+
+    function viewUser(user) {
+      const refs = user._refCount ?? 'Loading...';
+      const balance = (user.balance || 0).toFixed(2);
+      const joinDate = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : '—';
+      const inviter = user.invitedBy || 'None';
+
+      openModal(`
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('active')">✕</button>
+        <h3>👤 ${user.username || 'User'} Details</h3>
+        <div class="user-detail-row"><span class="label">Username</span><span class="value">${user.username || '—'}</span></div>
+        <div class="user-detail-row"><span class="label">Email</span><span class="value">${user.email || '—'}</span></div>
+        <div class="user-detail-row"><span class="label">UID</span><span class="value" style="font-family:'JetBrains Mono',monospace;font-size:11px;">${user.uid}</span></div>
+        <div class="user-detail-row"><span class="label">Balance</span><span class="value" style="color:var(--teal);">$${balance}</span></div>
+        <div class="user-detail-row"><span class="label">Status</span><span class="value">${user.status || 'active'}</span></div>
+        <div class="user-detail-row"><span class="label">Invited By</span><span class="value">${inviter}</span></div>
+        <div class="user-detail-row"><span class="label">Referrals</span><span class="value">${refs}</span></div>
+        <div class="user-detail-row"><span class="label">Joined</span><span class="value">${joinDate}</span></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.getElementById('modalOverlay').classList.remove('active')">Close</button>
+          <button class="modal-btn primary" id="modalFundBtn">+ Fund User</button>
+          <button class="modal-btn danger" id="modalDeductBtn" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:#f59e0b;">- Deduct</button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('modalFundBtn').addEventListener('click', () => { closeModal(); fundUser(user); });
+        document.getElementById('modalDeductBtn').addEventListener('click', () => { closeModal(); deductUser(user); });
+      }, 100);
+    }
+
+    function fundUser(user) {
+      openModal(`
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('active')">✕</button>
+        <h3>💰 Fund User: ${user.username}</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Current balance: <strong style="color:var(--teal);">$${(user.balance || 0).toFixed(2)}</strong></p>
+        <label class="modal-label">Amount (USD)</label>
+        <input type="number" class="modal-input" id="fundAmount" placeholder="0.00" min="0.01" step="0.01" />
+        <label class="modal-label">Note (optional)</label>
+        <input type="text" class="modal-input" id="fundNote" placeholder="Admin funding" />
+        <div id="fundError" style="color:var(--danger);font-size:11px;margin-bottom:8px;"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.getElementById('modalOverlay').classList.remove('active')">Cancel</button>
+          <button class="modal-btn primary" id="confirmFund">Confirm Fund</button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('confirmFund').addEventListener('click', async () => {
+          const amount = parseFloat(document.getElementById('fundAmount').value);
+          const note = document.getElementById('fundNote').value || 'Admin funding';
+          const errEl = document.getElementById('fundError');
+          if (!amount || amount <= 0) { errEl.textContent = 'Enter a valid amount.'; return; }
+          const btn = document.getElementById('confirmFund');
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          try {
+            await updateDoc(doc(db, 'users', user.uid), { balance: increment(amount) });
+            const txnId = `fund_${Date.now()}`;
+            await setDoc(doc(db, 'users', user.uid, 'transactions', txnId), {
+              type: 'deposit', amount, description: note, status: 'credited', createdAt: serverTimestamp()
+            });
+            await setDoc(doc(db, 'adminLogs', `fund_${txnId}`), {
+              adminId: currentAdmin.uid, action: 'fund_user', targetUserId: user.uid, amount, note, createdAt: serverTimestamp()
+            });
+            toast('success', 'User Funded', `$${amount.toFixed(2)} added to ${user.username}.`);
+            closeModal();
+            loadUsers();
+          } catch (err) {
+            errEl.textContent = err.message || 'Failed.';
+            btn.disabled = false;
+            btn.textContent = 'Confirm Fund';
+          }
+        });
+      }, 100);
+    }
+
+    function deductUser(user) {
+      openModal(`
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('active')">✕</button>
+        <h3>🔻 Deduct from: ${user.username}</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Current balance: <strong style="color:var(--teal);">$${(user.balance || 0).toFixed(2)}</strong></p>
+        <label class="modal-label">Amount to Deduct (USD)</label>
+        <input type="number" class="modal-input" id="deductAmount" placeholder="0.00" min="0.01" step="0.01" />
+        <label class="modal-label">Reason</label>
+        <input type="text" class="modal-input" id="deductReason" placeholder="e.g., Chargeback, Adjustment" />
+        <div id="deductError" style="color:var(--danger);font-size:11px;margin-bottom:8px;"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.getElementById('modalOverlay').classList.remove('active')">Cancel</button>
+          <button class="modal-btn danger" id="confirmDeduct">Confirm Deduction</button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('confirmDeduct').addEventListener('click', async () => {
+          const amount = parseFloat(document.getElementById('deductAmount').value);
+          const reason = document.getElementById('deductReason').value || 'Admin deduction';
+          const errEl = document.getElementById('deductError');
+          if (!amount || amount <= 0) { errEl.textContent = 'Enter a valid amount.'; return; }
+          if (amount > (user.balance || 0)) { errEl.textContent = 'Amount exceeds user balance.'; return; }
+          const btn = document.getElementById('confirmDeduct');
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          try {
+            await updateDoc(doc(db, 'users', user.uid), { balance: increment(-amount) });
+            const txnId = `deduct_${Date.now()}`;
+            await setDoc(doc(db, 'users', user.uid, 'transactions', txnId), {
+              type: 'withdraw', amount, description: reason, status: 'completed', createdAt: serverTimestamp()
+            });
+            await setDoc(doc(db, 'adminLogs', `deduct_${txnId}`), {
+              adminId: currentAdmin.uid, action: 'deduct_user', targetUserId: user.uid, amount, reason, createdAt: serverTimestamp()
+            });
+            toast('success', 'Amount Deducted', `$${amount.toFixed(2)} deducted from ${user.username}.`);
+            closeModal();
+            loadUsers();
+          } catch (err) {
+            errEl.textContent = err.message || 'Failed.';
+            btn.disabled = false;
+            btn.textContent = 'Confirm Deduction';
+          }
+        });
+      }, 100);
+    }
+
+    async function toggleStatus(user, newStatus) {
+      const action = newStatus === 'suspended' ? 'suspend' : 'activate';
+      if (action === 'suspend' && !confirm(`Suspend ${user.username}? They will not be able to access their account.`)) return;
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { status: newStatus });
+        await setDoc(doc(db, 'adminLogs', `status_${Date.now()}`), {
+          adminId: currentAdmin.uid, action: `${action}_user`, targetUserId: user.uid, newStatus, createdAt: serverTimestamp()
+        });
+        toast('success', 'Status Updated', `${user.username} is now ${newStatus}.`);
+        loadUsers();
+      } catch (e) { toast('error', 'Failed', e.message); }
+    }
+
+    function deleteUser(user) {
+      openModal(`
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('active')">✕</button>
+        <h3 style="color:var(--danger);">⚠️ Delete User</h3>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Are you sure you want to permanently delete <strong>${user.username}</strong>?</p>
+        <p style="font-size:11px;color:var(--danger);margin-top:8px;">This action cannot be undone. Balance: $${(user.balance || 0).toFixed(2)}</p>
+        <input type="text" class="modal-input" id="deleteConfirm" placeholder='Type "DELETE" to confirm' style="text-align:center;font-weight:700;" />
+        <div id="deleteError" style="color:var(--danger);font-size:11px;margin-bottom:8px;"></div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" onclick="document.getElementById('modalOverlay').classList.remove('active')">Cancel</button>
+          <button class="modal-btn danger" id="confirmDelete">Permanently Delete</button>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+          const input = document.getElementById('deleteConfirm').value.trim();
+          if (input !== 'DELETE') { document.getElementById('deleteError').textContent = 'Type DELETE to confirm.'; return; }
+          const btn = document.getElementById('confirmDelete');
+          btn.disabled = true;
+          btn.textContent = 'Deleting...';
+          try {
+            await setDoc(doc(db, 'deletedUsers', user.uid), { ...user, deletedAt: serverTimestamp(), deletedBy: currentAdmin.uid });
+            await updateDoc(doc(db, 'users', user.uid), { status: 'deleted', deletedAt: serverTimestamp() });
+            toast('success', 'User Deleted', `${user.username} has been deleted.`);
+            closeModal();
+            loadUsers();
+          } catch (e) { document.getElementById('deleteError').textContent = e.message; btn.disabled = false; btn.textContent = 'Permanently Delete'; }
+        });
+      }, 100);
+    }
+  </script>
+</body>
+</html>
