@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 0;
+    }
+
+    /* Top Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-shield {
+      width: 38px; height: 38px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .topbar h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .topbar .admin-info {
+      font-size: 11px;
+      color: var(--danger);
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      font-size: 15px; transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .topbar-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 18px 16px;
+      transition: all 0.25s;
+    }
+
+    .stat-card:hover { border-color: var(--teal); transform: translateY(-1px); }
+
+    .stat-card-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; margin-bottom: 10px;
+    }
+
+    .stat-card-icon.users { background: rgba(96,165,250,0.12); color: var(--blue); }
+    .stat-card-icon.deposits { background: rgba(0,217,181,0.12); color: var(--teal); }
+    .stat-card-icon.pending { background: rgba(232,184,76,0.12); color: var(--gold); }
+    .stat-card-icon.plans { background: rgba(167,139,250,0.12); color: var(--purple); }
+    .stat-card-icon.withdrawals { background: rgba(229,86,107,0.12); color: var(--danger); }
+    .stat-card-icon.bonus { background: rgba(232,184,76,0.12); color: var(--gold); }
+    .stat-card-icon.balance { background: rgba(0,217,181,0.12); color: var(--teal); }
+    .stat-card-icon.vip { background: rgba(232,184,76,0.12); color: var(--gold); }
+
+    .stat-card-value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .stat-card-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .quick-action {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 16px 12px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-action:hover { border-color: var(--teal); transform: translateY(-1px); }
+    .quick-action .qa-icon { font-size: 22px; }
+    .quick-action .qa-label { font-size: 11px; font-weight: 600; }
+    .quick-action .qa-badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px; padding: 2px 8px; border-radius: 10px;
+      background: rgba(229,86,107,0.15); color: var(--danger);
+      font-weight: 600;
+    }
+
+    /* Pending Alert */
+    .pending-alert {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(232,184,76,0.08);
+      border: 1px solid rgba(232,184,76,0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+    }
+
+    .pending-alert .alert-text {
+      flex: 1; font-size: 12px; color: var(--gold); line-height: 1.4;
+    }
+
+    .pending-alert .alert-link {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; color: var(--gold); text-decoration: none;
+      font-weight: 600; white-space: nowrap;
+      border-bottom: 1px solid rgba(232,184,76,0.4);
+    }
+
+    /* Activity */
+    .panel {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .activity-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--line-soft);
+      font-size: 12px;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+      width: 30px; height: 30px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0;
+    }
+
+    .activity-icon.deposit { background: rgba(0,217,181,0.1); color: var(--teal); }
+    .activity-icon.withdraw { background: rgba(229,86,107,0.1); color: var(--danger); }
+
+    .activity-info { flex: 1; }
+    .activity-amount { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 600; }
+    .activity-status {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 7px; letter-spacing: 0.05em;
+      padding: 3px 8px; border-radius: 10px; font-weight: 600;
+    }
+
+    .activity-status.pending { background: rgba(232,184,76,0.12); color: var(--gold); }
+    .activity-status.credited { background: rgba(0,217,181,0.12); color: var(--teal); }
+
+    /* ═══════════ BOTTOM NAVIGATION ═══════════ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      background: linear-gradient(180deg, rgba(12,17,25,0.98) 0%, rgba(6,9,14,0.99) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 2px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 2px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+      overflow-x: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 8px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      min-width: 56px;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .nav-item svg { width: 20px; height: 20px; }
+    .nav-item span { font-size: 8px; font-weight: 500; letter-spacing: 0.03em; white-space: nowrap; }
+
+    .nav-item.active { color: #f87171; }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      top: -2px; left: 50%; transform: translateX(-50%);
+      width: 18px; height: 2px;
+      background: #f87171;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .nav-item:hover { color: #f87171; }
+    .nav-item:active { transform: scale(0.92); }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2,0.8,0.2,1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232,184,76,0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .nav-item span { font-size: 7px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <div class="app-container">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="admin-shield">🛡️</div>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <div class="admin-info" id="adminName">Admin</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a href="admin-create-user.html" class="topbar-btn" title="Create User">➕</a>
+        <button class="topbar-btn" id="refreshBtn" title="Refresh">⟳</button>
+        <a href="admin-login.html" class="topbar-btn" id="logoutTopBtn" title="Logout" style="color:var(--danger);">🚪</a>
+      </div>
+    </div>
+
+    <!-- Pending Alert -->
+    <div class="pending-alert">
+      <span style="font-size:18px;">⚠️</span>
+      <span class="alert-text">You have <strong id="pendingCount">0</strong> pending deposits & <strong id="pendingWithdrawals">0</strong> pending withdrawals.</span>
+      <a href="admin-deposits.html" class="alert-link">Review →</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon users">👥</div>
+        <div class="stat-card-value" id="totalUsers">—</div>
+        <div class="stat-card-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon deposits">💰</div>
+        <div class="stat-card-value" id="totalDeposits">—</div>
+        <div class="stat-card-label">Total Deposits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon pending">⏳</div>
+        <div class="stat-card-value" id="pendingDeposits">—</div>
+        <div class="stat-card-label">Pending Deposits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon plans">📦</div>
+        <div class="stat-card-value" id="activePlans">—</div>
+        <div class="stat-card-label">Active Plans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon withdrawals">💸</div>
+        <div class="stat-card-value" id="totalWithdrawals">—</div>
+        <div class="stat-card-label">Withdrawals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon bonus">🎁</div>
+        <div class="stat-card-value" id="totalBonuses">—</div>
+        <div class="stat-card-label">Bonuses Paid</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon balance">💎</div>
+        <div class="stat-card-value" id="totalSystemBalance">—</div>
+        <div class="stat-card-label">System Balance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon vip">👑</div>
+        <div class="stat-card-value" id="vipMembers">—</div>
+        <div class="stat-card-label">VIP Members</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="admin-users.html" class="quick-action">
+        <span class="qa-icon">👥</span>
+        <span class="qa-label">Users</span>
+      </a>
+      <a href="admin-create-user.html" class="quick-action">
+        <span class="qa-icon">➕</span>
+        <span class="qa-label">Create User</span>
+      </a>
+      <a href="admin-deposits.html" class="quick-action">
+        <span class="qa-icon">💰</span>
+        <span class="qa-label">Deposits</span>
+        <span class="qa-badge" id="qaPendingDeposits">0</span>
+      </a>
+      <a href="admin-withdrawals.html" class="quick-action">
+        <span class="qa-icon">💸</span>
+        <span class="qa-label">Withdrawals</span>
+        <span class="qa-badge" id="qaPendingWithdrawals">0</span>
+      </a>
+      <a href="admin-plans.html" class="quick-action">
+        <span class="qa-icon">📦</span>
+        <span class="qa-label">Plans</span>
+      </a>
+      <a href="admin-referrals.html" class="quick-action">
+        <span class="qa-icon">🔗</span>
+        <span class="qa-label">Referrals</span>
+      </a>
+      <a href="admin-vip.html" class="quick-action">
+        <span class="qa-icon">👑</span>
+        <span class="qa-label">VIP</span>
+      </a>
+      <a href="admin-settings.html" class="quick-action">
+        <span class="qa-icon">⚙️</span>
+        <span class="qa-label">Settings</span>
+      </a>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="panel">
+      <div class="panel-title">📋 Recent Activity</div>
+      <div id="activityList">
+        <div class="activity-item" style="color:var(--text-muted);">Loading activity...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ BOTTOM NAVIGATION ═══════════ -->
+  <nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="14" y="2" width="8" height="8" rx="1.5"/><rect x="2" y="14" width="8" height="8" rx="1.5"/><rect x="14" y="14" width="8" height="8" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+      <span>Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v14M6 12l6 6 6-6"/><path d="M4 22h16"/></svg>
+      <span>Deposits</span>
+    </a>
+    <a href="admin-plans.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Plans</span>
+    </a>
+    <a href="admin-referrals.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="17" r="3"/><path d="M12 10l3.5 4.5"/></svg>
+      <span>Referrals</span>
+    </a>
+    <a href="admin-settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    async function checkAdminAccess(uid) {
+      const snap = await getDoc(doc(db, 'admins', uid));
+      return snap.exists() && snap.data().status === 'active';
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'admin-login.html'; return; }
+      const isAdmin = await checkAdminAccess(user.uid);
+      if (!isAdmin) { await signOut(auth); window.location.href = 'admin-login.html'; return; }
+      document.getElementById('adminName').textContent = user.displayName || user.email?.split('@')[0] || 'Admin';
+      loadDashboard();
+    });
+
+    document.getElementById('logoutTopBtn').addEventListener('click', async (e) => {
+      e.preventDefault(); await signOut(auth); window.location.href = 'admin-login.html';
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadDashboard(); toast('info','Refreshed','Dashboard updated.',2000);
+    });
+
+    async function loadDashboard() {
+      await Promise.all([loadUserStats(), loadDepositStats(), loadWithdrawalStats(), loadPlanStats(), loadBonusStats(), loadActivity()]);
+    }
+
+    async function loadUserStats() {
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        document.getElementById('totalUsers').textContent = snap.size;
+        let vipCount = 0;
+        for (const d of snap.docs) {
+          const refSnap = await getDocs(query(collection(db,'users'), where('invitedBy','==',d.id)));
+          if (refSnap.size >= 10) vipCount++;
+        }
+        document.getElementById('vipMembers').textContent = vipCount;
+      } catch(e) { /* */ }
+    }
+
+    async function loadDepositStats() {
+      try {
+        const snap = await getDocs(collection(db,'deposits'));
+        let total = 0, pending = 0;
+        snap.forEach(d => {
+          const data = d.data();
+          if (data.status==='credited') total += (data.amount||0);
+          if (data.status==='pending') pending++;
+        });
+        document.getElementById('totalDeposits').textContent = '$'+total.toLocaleString('en-US',{minimumFractionDigits:2});
+        document.getElementById('pendingDeposits').textContent = pending;
+        document.getElementById('qaPendingDeposits').textContent = pending;
+        document.getElementById('pendingCount').textContent = pending;
+      } catch(e) { /* */ }
+    }
+
+    async function loadWithdrawalStats() {
+      try {
+        const snap = await getDocs(collection(db,'withdrawals'));
+        let total = 0, pending = 0;
+        snap.forEach(d => {
+          const data = d.data();
+          if (data.status==='completed') total += (data.amount||0);
+          if (data.status==='pending') pending++;
+        });
+        document.getElementById('totalWithdrawals').textContent = '$'+total.toLocaleString('en-US',{minimumFractionDigits:2});
+        document.getElementById('pendingWithdrawals').textContent = pending;
+        document.getElementById('qaPendingWithdrawals').textContent = pending;
+      } catch(e) { /* */ }
+    }
+
+    async function loadPlanStats() {
+      try {
+        let active = 0;
+        const usersSnap = await getDocs(collection(db,'users'));
+        for (const d of usersSnap.docs) {
+          try {
+            const planSnap = await getDocs(query(collection(db,'users',d.id,'plans'), where('status','==','active')));
+            active += planSnap.size;
+          } catch(e) { /* */ }
+        }
+        document.getElementById('activePlans').textContent = active;
+      } catch(e) { /* */ }
+    }
+
+    async function loadBonusStats() {
+      try {
+        let total = 0;
+        const usersSnap = await getDocs(collection(db,'users'));
+        for (const d of usersSnap.docs) {
+          try {
+            const bonusSnap = await getDocs(query(collection(db,'users',d.id,'transactions'), where('type','==','referral_bonus')));
+            bonusSnap.forEach(b => { total += (b.data().amount||0); });
+          } catch(e) { /* */ }
+        }
+        document.getElementById('totalBonuses').textContent = '$'+total.toLocaleString('en-US',{minimumFractionDigits:2});
+      } catch(e) { /* */ }
+    }
+
+    async function loadActivity() {
+      const list = document.getElementById('activityList');
+      try {
+        const snap = await getDocs(query(collection(db,'deposits'), orderBy('createdAt','desc'), limit(8)));
+        if (snap.empty) { list.innerHTML = '<div class="activity-item" style="color:var(--text-muted);">No recent activity</div>'; return; }
+        list.innerHTML = '';
+        snap.forEach(d => {
+          const t = d.data();
+          const date = t.createdAt?.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) || '—';
+          list.innerHTML += `
+            <div class="activity-item">
+              <div class="activity-icon deposit">↓</div>
+              <div class="activity-info">${t.fullName||'User'} — Deposit</div>
+              <div class="activity-amount" style="color:var(--teal);">$${(t.amount||0).toFixed(2)}</div>
+              <span class="activity-status ${t.status||'pending'}">${t.status||'pending'}</span>
+            </div>`;
+        });
+      } catch(e) { list.innerHTML = '<div class="activity-item" style="color:var(--text-muted);">Could not load activity</div>'; }
+    }
+  </script>
+</body>
+</html>
