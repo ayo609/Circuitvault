@@ -40,7 +40,8 @@
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
-      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+      /* ✅ EXTRA padding so bottom nav doesn't cover My Plans */
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 80px);
     }
 
     body::before {
@@ -168,29 +169,6 @@
     .plan-card.owned {
       border-color: rgba(0,217,181,0.35);
       background: linear-gradient(180deg, rgba(0,217,181,0.04) 0%, rgba(0,217,181,0.02) 100%);
-    }
-
-    .plan-card.locked-plan {
-      opacity: 0.6;
-      filter: grayscale(0.5);
-      pointer-events: none;
-    }
-
-    .plan-card.locked-plan::after {
-      content: "🔒 LOCKED";
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: "Space Grotesk", sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--danger);
-      background: rgba(6,9,14,0.5);
-      z-index: 2;
-      border-radius: var(--radius);
-      letter-spacing: 0.05em;
     }
 
     .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
@@ -453,14 +431,12 @@
       </div>
     </div>
 
-    <div class="section-title">📦 Available Plans</div>
+    <!-- ✅ ALL PLANS IN ONE SECTION — NO LOCKED PLANS -->
+    <div class="section-title">📦 All Investment Plans</div>
     <div class="bonus-info">
       💰 <strong>Referral Bonus:</strong> Earn <strong>10%</strong> (L1), <strong>2%</strong> (L2), <strong>1%</strong> (L3) when downlines purchase any plan!
     </div>
-    <div class="plans-grid" id="plansGrid"></div>
-
-    <div class="section-title" style="margin-top:8px;">🔒 Premium Plans (Admin Unlock)</div>
-    <div class="plans-grid" id="lockedPlansGrid"></div>
+    <div class="plans-grid" id="allPlansGrid"></div>
 
     <div class="section-title" style="margin-top:8px;">📋 My Purchased Plans</div>
     <div id="myPlansList">
@@ -470,6 +446,8 @@
         <span>Purchase a plan to start earning daily returns</span>
       </div>
     </div>
+    <!-- ✅ Extra spacer so My Plans scrolls above bottom nav -->
+    <div style="height:30px;"></div>
   </div>
 
   <nav class="bottom-nav">
@@ -516,7 +494,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const AVAILABLE_PLANS = [
+    // ✅ ALL 14 PLANS — ALL UNLOCKED
+    const ALL_PLANS = [
       { id: 'plan1', name: 'Starter', price: 4.38, dailyReturn: 0.15, days: 90, totalReturn: 13.78, popular: false },
       { id: 'plan2', name: 'Basic', price: 6.25, dailyReturn: 0.22, days: 90, totalReturn: 19.69, popular: false },
       { id: 'plan3', name: 'Bronze', price: 9.38, dailyReturn: 0.33, days: 90, totalReturn: 29.53, popular: false },
@@ -526,14 +505,11 @@
       { id: 'plan7', name: 'Diamond', price: 31.25, dailyReturn: 1.09, days: 90, totalReturn: 98.44, popular: false },
       { id: 'plan8', name: 'Elite', price: 37.50, dailyReturn: 1.31, days: 90, totalReturn: 118.13, popular: false },
       { id: 'plan9', name: 'Pro', price: 50.00, dailyReturn: 1.75, days: 90, totalReturn: 157.50, popular: false },
-      { id: 'plan10', name: 'Anseum', price: 100, dailyReturn: 3.50, days: 90, totalReturn: 315.00, popular: false }
-    ];
-
-    const LOCKED_PLANS = [
-      { id: 'plan_vip1', name: 'VIP Silver', price: 200, dailyReturn: 7.00, days: 90, totalReturn: 830, popular: false },
-      { id: 'plan_vip2', name: 'VIP Gold', price: 500, dailyReturn: 18.00, days: 90, totalReturn: 2120, popular: false },
-      { id: 'plan_vip3', name: 'VIP Diamond', price: 1000, dailyReturn: 38.00, days: 90, totalReturn: 4420, popular: false },
-      { id: 'plan_vip4', name: 'VIP Elite', price: 1500, dailyReturn: 60.00, days: 90, totalReturn: 6900, popular: false }
+      { id: 'plan10', name: 'Anseum', price: 100, dailyReturn: 3.50, days: 90, totalReturn: 315.00, popular: false },
+      { id: 'plan11', name: 'VIP Silver', price: 200, dailyReturn: 7.00, days: 90, totalReturn: 830, popular: false },
+      { id: 'plan12', name: 'VIP Gold', price: 500, dailyReturn: 18.00, days: 90, totalReturn: 2120, popular: false },
+      { id: 'plan13', name: 'VIP Diamond', price: 1000, dailyReturn: 38.00, days: 90, totalReturn: 4420, popular: false },
+      { id: 'plan14', name: 'VIP Elite', price: 1500, dailyReturn: 60.00, days: 90, totalReturn: 6900, popular: false }
     ];
 
     const MAX_PURCHASES = 5;
@@ -674,15 +650,14 @@
     }
 
     function renderAll() {
-      renderAvailablePlans();
-      renderLockedPlans();
+      renderAllPlans();
       renderMyPlans();
     }
 
-    function renderAvailablePlans() {
-      const grid = document.getElementById('plansGrid');
+    function renderAllPlans() {
+      const grid = document.getElementById('allPlansGrid');
       grid.innerHTML = '';
-      AVAILABLE_PLANS.forEach(plan => {
+      ALL_PLANS.forEach(plan => {
         const purchased = purchasedPlans[plan.id] || [];
         const count = purchased.length;
         const isMaxed = count >= MAX_PURCHASES;
@@ -710,26 +685,8 @@
       });
     }
 
-    function renderLockedPlans() {
-      const grid = document.getElementById('lockedPlansGrid');
-      grid.innerHTML = '';
-      LOCKED_PLANS.forEach(plan => {
-        grid.innerHTML += `
-          <div class="plan-card locked-plan">
-            <div class="plan-header"><div><div class="plan-name">${plan.name}</div></div><div class="plan-price">$${plan.price.toFixed(2)}<small>USD</small></div></div>
-            <div class="plan-stats">
-              <div class="plan-stat"><div class="plan-stat-label">Daily</div><div class="plan-stat-value green">$${plan.dailyReturn.toFixed(2)}</div></div>
-              <div class="plan-stat"><div class="plan-stat-label">Duration</div><div class="plan-stat-value">${plan.days}d</div></div>
-              <div class="plan-stat"><div class="plan-stat-label">Total</div><div class="plan-stat-value green">$${plan.totalReturn.toFixed(2)}</div></div>
-            </div>
-            <div class="plan-purchase-info"><span>Contact admin to unlock</span></div>
-            <button class="btn btn-buy" disabled><span class="btn-text">🔒 Locked</span></button>
-          </div>`;
-      });
-    }
-
     async function purchasePlan(planId, planPrice, btnElement) {
-      const plan = AVAILABLE_PLANS.find(p => p.id === planId);
+      const plan = ALL_PLANS.find(p => p.id === planId);
       if (!plan || !currentUser) return;
       const count = (purchasedPlans[planId] || []).length;
       if (count >= MAX_PURCHASES) { toast('error','Limit','Max purchases reached.'); return; }
@@ -755,6 +712,7 @@
           status: 'completed', createdAt: serverTimestamp()
         });
 
+        // ✅ ONE-TIME REFERRAL BONUS DISTRIBUTION
         let bonusDistributed = 0;
         let bonusMessages = [];
 
@@ -771,7 +729,7 @@
             batch.update(doc(db,'users',userData.invitedBy),{balance:increment(l1)});
             batch.set(doc(db,'users',userData.invitedBy,'transactions',`bonus_${purchaseId}_l1`),{
               type:'referral_bonus',amount:l1,level:1,fromUser:currentUser.uid,planName:plan.name,
-              description:`Level 1 Referral Bonus (${REFERRAL_BONUS_L1}%)`,status:'credited',createdAt:serverTimestamp()
+              description:`L1 Bonus (${REFERRAL_BONUS_L1}%)`,status:'credited',createdAt:serverTimestamp()
             });
             bonusDistributed++; bonusMessages.push(`L1:$${l1.toFixed(2)}`);
 
@@ -786,7 +744,7 @@
                   batch.update(doc(db,'users',l2Uid),{balance:increment(l2)});
                   batch.set(doc(db,'users',l2Uid,'transactions',`bonus_${purchaseId}_l2`),{
                     type:'referral_bonus',amount:l2,level:2,fromUser:currentUser.uid,planName:plan.name,
-                    description:`Level 2 Referral Bonus (${REFERRAL_BONUS_L2}%)`,status:'credited',createdAt:serverTimestamp()
+                    description:`L2 Bonus (${REFERRAL_BONUS_L2}%)`,status:'credited',createdAt:serverTimestamp()
                   });
                   bonusDistributed++; bonusMessages.push(`L2:$${l2.toFixed(2)}`);
 
@@ -801,7 +759,7 @@
                         batch.update(doc(db,'users',l3Uid),{balance:increment(l3)});
                         batch.set(doc(db,'users',l3Uid,'transactions',`bonus_${purchaseId}_l3`),{
                           type:'referral_bonus',amount:l3,level:3,fromUser:currentUser.uid,planName:plan.name,
-                          description:`Level 3 Referral Bonus (${REFERRAL_BONUS_L3}%)`,status:'credited',createdAt:serverTimestamp()
+                          description:`L3 Bonus (${REFERRAL_BONUS_L3}%)`,status:'credited',createdAt:serverTimestamp()
                         });
                         bonusDistributed++; bonusMessages.push(`L3:$${l3.toFixed(2)}`);
                       }
@@ -833,7 +791,7 @@
         if (bonusDistributed>0) {
           setTimeout(()=>toast('info','Referral Bonus!',`Sent to ${bonusDistributed} upliner(s). ${bonusMessages.join(' | ')}`,6000),1500);
         } else if (userData?.invitedBy) {
-          setTimeout(()=>toast('info','Already Paid','Bonus already distributed previously.',5000),1500);
+          setTimeout(()=>toast('info','Already Paid','Bonus already distributed for this plan.',5000),1500);
         } else {
           setTimeout(()=>toast('info','No Upliner','Share your link to earn from downlines!',5000),1500);
         }
