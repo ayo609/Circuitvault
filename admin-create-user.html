@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Create User</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --sidebar-w: 230px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════ SIDEBAR ═══════════ */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #0a0f18 0%, #060a10 100%);
+      border-right: 1px solid var(--line);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0 16px;
+      overflow-y: auto;
+    }
+
+    .side-brand {
+      text-align: center;
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 8px;
+    }
+
+    .side-brand .shield {
+      width: 36px; height: 36px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px; font-size: 18px;
+    }
+
+    .side-brand .name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px; font-weight: 700;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    .side-brand .role {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px; letter-spacing: 0.12em;
+      color: var(--danger); text-transform: uppercase; margin-top: 2px;
+    }
+
+    .side-nav {
+      flex: 1;
+      display: flex; flex-direction: column; gap: 2px;
+      padding: 8px 12px;
+    }
+
+    .side-nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .side-nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+    .side-nav a.active { background: rgba(220, 38, 38, 0.1); color: #f87171; }
+    .side-nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+    .side-nav .nav-section {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #4d5a66;
+      padding: 16px 14px 6px;
+    }
+
+    .side-footer { padding: 12px 16px; border-top: 1px solid var(--line); }
+    .side-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; color: var(--danger);
+      text-decoration: none; transition: background 0.2s;
+    }
+    .side-footer a:hover { background: rgba(229, 86, 107, 0.1); }
+
+    /* ═══════════ MAIN ═══════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 28px 32px 40px;
+      position: relative;
+      z-index: 1;
+      max-width: calc(100vw - var(--sidebar-w));
+    }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+    }
+
+    .topbar h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px; font-weight: 700;
+    }
+
+    .form-container {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      max-width: 600px;
+    }
+
+    .form-section-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-row.full { grid-template-columns: 1fr; }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-group label .required {
+      color: var(--danger);
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0, 217, 181, 0.1);
+    }
+
+    .form-input.error { border-color: var(--danger); }
+
+    .form-input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .form-error {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 4px;
+      min-height: 16px;
+    }
+
+    .form-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    select.form-input {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c8894' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+    }
+
+    select.form-input option {
+      background: var(--bg-panel);
+      color: var(--text);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      margin-bottom: 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: "Inter", sans-serif;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), #00b894);
+      color: #12100a;
+      box-shadow: 0 10px 30px -10px rgba(0, 217, 181, 0.25);
+    }
+
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(1px) scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; filter: none; transform: none; }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+    }
+
+    .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+    .btn .spinner {
+      display: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid rgba(18, 16, 10, 0.35);
+      border-top-color: #12100a;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn.loading .btn-text { display: none; }
+    .btn.loading .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-card {
+      background: rgba(0, 217, 181, 0.06);
+      border: 1px solid rgba(0, 217, 181, 0.25);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .success-card.visible { display: block; }
+
+    .success-card .icon { font-size: 40px; margin-bottom: 10px; }
+    .success-card h3 { font-family: "Space Grotesk", sans-serif; font-size: 18px; margin-bottom: 6px; color: var(--teal); }
+    .success-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .success-card .created-details {
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+      text-align: left;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2,0.8,0.2,1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232,184,76,0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .side-brand .name, .side-brand .role, .side-nav a span, .side-nav .nav-section, .side-footer a span { display: none; }
+      .side-nav a, .side-footer a { justify-content: center; padding: 10px; }
+      .main { margin-left: 60px; padding: 16px; max-width: calc(100vw - 60px); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="shield">🛡️</div>
+      <div class="name">CIRCUIT VAULT</div>
+      <div class="role">Admin Panel</div>
+    </div>
+    <nav class="side-nav">
+      <a href="admin-dashboard.html"><span class="nav-icon">📊</span> <span>Dashboard</span></a>
+      <div class="nav-section">Management</div>
+      <a href="admin-users.html"><span class="nav-icon">👥</span> <span>Users</span></a>
+      <a href="admin-create-user.html" class="active"><span class="nav-icon">➕</span> <span>Create User</span></a>
+      <a href="admin-deposits.html"><span class="nav-icon">💰</span> <span>Deposits</span></a>
+      <a href="admin-withdrawals.html"><span class="nav-icon">💸</span> <span>Withdrawals</span></a>
+      <a href="admin-plans.html"><span class="nav-icon">📦</span> <span>Plans</span></a>
+      <div class="nav-section">Network</div>
+      <a href="admin-referrals.html"><span class="nav-icon">🔗</span> <span>Referrals</span></a>
+      <a href="admin-vip.html"><span class="nav-icon">👑</span> <span>VIP</span></a>
+      <div class="nav-section">System</div>
+      <a href="admin-settings.html"><span class="nav-icon">⚙️</span> <span>Settings</span></a>
+      <a href="admin-logs.html"><span class="nav-icon">📋</span> <span>Logs</span></a>
+      <a href="admin-impersonate.html"><span class="nav-icon">🔍</span> <span>User Lookup</span></a>
+    </nav>
+    <div class="side-footer">
+      <a href="admin-login.html" id="logoutSidebar"><span style="font-size:15px;">🚪</span> <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1>➕ Create New User</h1>
+    </div>
+
+    <div class="form-container">
+      <div class="form-section-title">👤 Account Details</div>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label>Username <span class="required">*</span></label>
+        <input type="text" class="form-input" id="username" placeholder="e.g. johnsmith" autocomplete="off" />
+        <div class="form-error" id="usernameError"></div>
+        <div class="form-hint">3–20 characters, letters, numbers, underscores</div>
+      </div>
+
+      <!-- Email & Password Row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email Address <span class="required">*</span></label>
+          <input type="email" class="form-input" id="email" placeholder="user@email.com" autocomplete="off" />
+          <div class="form-error" id="emailError"></div>
+        </div>
+        <div class="form-group">
+          <label>Password <span class="required">*</span></label>
+          <input type="text" class="form-input" id="password" placeholder="Min. 8 characters" autocomplete="off" />
+          <div class="form-error" id="passwordError"></div>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" class="form-input" id="phone" placeholder="+1 234 567 8900" autocomplete="off" />
+      </div>
+
+      <div class="form-section-title" style="margin-top:24px;">💰 Financial Settings</div>
+
+      <!-- Initial Balance & Currency Row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Initial Balance (USD)</label>
+          <input type="number" class="form-input" id="initialBalance" placeholder="0.00" value="0" min="0" step="0.01" />
+          <div class="form-hint">Starting balance for this user</div>
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-input" id="currency">
+            <option value="USD">USD — US Dollar</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title" style="margin-top:24px;">🔗 Referral Settings</div>
+
+      <!-- Referrer -->
+      <div class="form-group">
+        <label>Referrer Username (Upliner)</label>
+        <input type="text" class="form-input" id="referrer" placeholder="Leave blank if no upliner" autocomplete="off" />
+        <div class="form-error" id="referrerError"></div>
+        <div class="form-hint">Enter the username of the person who referred this user</div>
+      </div>
+
+      <div class="form-section-title" style="margin-top:24px;">⚙️ Account Status</div>
+
+      <!-- Status -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Status</label>
+          <select class="form-input" id="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Admin Funded</label>
+          <select class="form-input" id="adminFunded">
+            <option value="true">Yes — Mark as Admin Funded</option>
+            <option value="false">No — Regular User</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Skip email verification -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="skipVerification" checked />
+        <label for="skipVerification">Skip email verification (user can login immediately)</label>
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="window.location.href='admin-users.html'">← Cancel</button>
+        <button class="btn btn-primary" id="createUserBtn">
+          <span class="btn-text">➕ Create User Account</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+
+      <!-- Success Card -->
+      <div class="success-card" id="successCard">
+        <div class="icon">✅</div>
+        <h3>User Created Successfully!</h3>
+        <p>The account has been created and is ready to use.</p>
+        <div class="created-details" id="createdDetails"></div>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="resetForm()">➕ Create Another User</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="window.location.href='admin-users.html'">👥 View All Users</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, serverTimestamp,
+      collection, query, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentAdmin = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'admin-login.html'; return; }
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = 'admin-login.html'; return; }
+      currentAdmin = user;
+    });
+
+    document.getElementById('logoutSidebar').addEventListener('click', async (e) => {
+      e.preventDefault(); await signOut(auth); window.location.href = 'admin-login.html';
+    });
+
+    // ═══════════ Username availability check ═══════════
+    let usernameCheckTimer = null;
+    const usernameEl = document.getElementById('username');
+    const usernameError = document.getElementById('usernameError');
+
+    usernameEl.addEventListener('input', () => {
+      clearTimeout(usernameCheckTimer);
+      const val = usernameEl.value.trim();
+      if (!val) { usernameError.textContent = ''; return; }
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(val)) {
+        usernameError.textContent = '3-20 chars, letters, numbers, underscores only.';
+        return;
+      }
+      usernameError.textContent = '';
+      usernameCheckTimer = setTimeout(async () => {
+        const lower = val.toLowerCase();
+        const snap = await getDoc(doc(db, 'usernames', lower));
+        if (snap.exists()) {
+          usernameError.textContent = '❌ This username is already taken.';
+        } else {
+          usernameError.textContent = '✅ Username available!';
+          usernameError.style.color = 'var(--teal)';
+          setTimeout(() => { usernameError.style.color = ''; }, 3000);
+        }
+      }, 600);
+    });
+
+    // ═══════════ Referrer lookup ═══════════
+    let referrerCheckTimer = null;
+    const referrerEl = document.getElementById('referrer');
+    const referrerError = document.getElementById('referrerError');
+
+    referrerEl.addEventListener('input', () => {
+      clearTimeout(referrerCheckTimer);
+      const val = referrerEl.value.trim();
+      if (!val) { referrerError.textContent = ''; return; }
+      referrerError.textContent = '';
+      referrerCheckTimer = setTimeout(async () => {
+        const q = query(collection(db, 'users'), where('usernameLower', '==', val.toLowerCase()));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          referrerError.textContent = '⚠️ No user found with this username. They can still be added later.';
+        } else {
+          referrerError.textContent = '✅ Referrer found!';
+          referrerError.style.color = 'var(--teal)';
+          setTimeout(() => { referrerError.style.color = ''; }, 3000);
+        }
+      }, 600);
+    });
+
+    // ═══════════ CREATE USER ═══════════
+    document.getElementById('createUserBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value.trim();
+      const initialBalance = parseFloat(document.getElementById('initialBalance').value) || 0;
+      const currency = document.getElementById('currency').value;
+      const referrer = document.getElementById('referrer').value.trim();
+      const status = document.getElementById('status').value;
+      const adminFunded = document.getElementById('adminFunded').value === 'true';
+
+      // Validation
+      let hasError = false;
+      const clearErrors = () => {
+        document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+        document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+      };
+      clearErrors();
+
+      if (!username || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        document.getElementById('usernameError').textContent = 'Valid username required (3-20 chars).';
+        document.getElementById('username').classList.add('error');
+        hasError = true;
+      }
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('emailError').textContent = 'Valid email required.';
+        document.getElementById('email').classList.add('error');
+        hasError = true;
+      }
+
+      if (!password || password.length < 8) {
+        document.getElementById('passwordError').textContent = 'Password must be at least 8 characters.';
+        document.getElementById('password').classList.add('error');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Check username availability
+      const usernameLower = username.toLowerCase();
+      const nameSnap = await getDoc(doc(db, 'usernames', usernameLower));
+      if (nameSnap.exists()) {
+        document.getElementById('usernameError').textContent = 'Username already taken.';
+        document.getElementById('username').classList.add('error');
+        return;
+      }
+
+      // Find referrer UID
+      let inviterUid = null;
+      if (referrer) {
+        const q = query(collection(db, 'users'), where('usernameLower', '==', referrer.toLowerCase()));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          inviterUid = snap.docs[0].id;
+        }
+      }
+
+      const btn = document.getElementById('createUserBtn');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      toast('info', 'Creating User...', 'Setting up the account...', 3000);
+
+      try {
+        // Create Firebase Auth account
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+        await updateProfile(cred.user, { displayName: username });
+
+        // Create Firestore user document
+        const userData = {
+          username,
+          usernameLower,
+          email,
+          phone: phone || null,
+          currency,
+          balance: initialBalance,
+          totalYield: 0,
+          depositCount: adminFunded ? 1 : 0,
+          invitedBy: inviterUid || null,
+          adminFunded,
+          createdBy: currentAdmin.uid,
+          createdAt: serverTimestamp(),
+          status
+        };
+
+        await setDoc(doc(db, 'users', uid), userData);
+        await setDoc(doc(db, 'usernames', usernameLower), { uid });
+        await setDoc(doc(db, 'referralCodes', usernameLower.toUpperCase()), { uid });
+
+        // If initial balance > 0, create a funding transaction
+        if (initialBalance > 0) {
+          const fundId = `admin_fund_${Date.now()}`;
+          await setDoc(doc(db, 'users', uid, 'transactions', fundId), {
+            type: 'deposit',
+            amount: initialBalance,
+            description: 'Admin initial funding',
+            status: 'credited',
+            createdAt: serverTimestamp()
+          });
+          await setDoc(doc(db, 'deposits', fundId), {
+            userId: uid,
+            amount: initialBalance,
+            currency: 'USD',
+            fullName: username,
+            phone: phone || '—',
+            network: 'Admin Funded',
+            status: 'credited',
+            createdAt: serverTimestamp(),
+            reviewedBy: currentAdmin.uid
+          });
+        }
+
+        // Log admin action
+        await setDoc(doc(db, 'adminLogs', `create_user_${uid}`), {
+          adminId: currentAdmin.uid,
+          action: 'create_user',
+          targetUserId: uid,
+          username,
+          email,
+          initialBalance,
+          adminFunded,
+          createdAt: serverTimestamp()
+        });
+
+        // Show success
+        document.getElementById('createdDetails').innerHTML = `
+          <div>👤 Username: <strong style="color:var(--teal);">${username}</strong></div>
+          <div>📧 Email: <strong>${email}</strong></div>
+          <div>🔑 Password: <strong>${password}</strong></div>
+          <div>💰 Balance: <strong style="color:var(--gold);">$${initialBalance.toFixed(2)}</strong></div>
+          <div>🆔 UID: <strong style="font-size:10px;">${uid}</strong></div>
+          <div>📊 Status: <strong>${status}</strong></div>
+          <div>💎 Admin Funded: <strong>${adminFunded ? 'Yes' : 'No'}</strong></div>
+          ${inviterUid ? `<div>🔗 Referrer: <strong>${referrer}</strong></div>` : '<div>🔗 Referrer: <strong>None</strong></div>'}
+        `;
+
+        document.getElementById('successCard').classList.add('visible');
+        document.querySelector('.form-container').querySelector('.btn-row').style.display = 'none';
+
+        toast('success', 'User Created!',
+          `${username} has been created with $${initialBalance.toFixed(2)} balance.`, 6000);
+
+        // Sign back in as admin
+        await auth.updateCurrentUser(currentAdmin);
+
+      } catch (err) {
+        console.error('Create user error:', err);
+        let msg = 'Something went wrong.';
+        if (err.code === 'auth/email-already-in-use') msg = 'This email is already registered.';
+        else if (err.code === 'auth/invalid-email') msg = 'Invalid email format.';
+        else if (err.code === 'auth/weak-password') msg = 'Password too weak (min. 8 characters).';
+        toast('error', 'Creation Failed', msg);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    });
+
+    // Reset form for another user
+    window.resetForm = function() {
+      document.getElementById('username').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('initialBalance').value = '0';
+      document.getElementById('referrer').value = '';
+      document.getElementById('status').value = 'active';
+      document.getElementById('adminFunded').value = 'true';
+      document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+      document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+      document.getElementById('successCard').classList.remove('visible');
+      document.querySelector('.form-container').querySelector('.btn-row').style.display = 'flex';
+    };
+  </script>
+</body>
+</html>
