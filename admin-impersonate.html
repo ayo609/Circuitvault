@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — User Lookup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --sidebar-w: 230px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ═══════════ SIDEBAR ═══════════ */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #0a0f18 0%, #060a10 100%);
+      border-right: 1px solid var(--line);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0 16px;
+      overflow-y: auto;
+    }
+
+    .side-brand {
+      text-align: center;
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 8px;
+    }
+
+    .side-brand .shield {
+      width: 36px; height: 36px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 18px;
+    }
+
+    .side-brand .name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .side-brand .role {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--danger);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .side-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+    }
+
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .side-nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+    .side-nav a.active { background: rgba(220, 38, 38, 0.1); color: #f87171; }
+    .side-nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+    .side-nav .nav-section {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4d5a66;
+      padding: 16px 14px 6px;
+    }
+
+    .side-footer { padding: 12px 16px; border-top: 1px solid var(--line); }
+    .side-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; color: var(--danger);
+      text-decoration: none; transition: background 0.2s;
+    }
+    .side-footer a:hover { background: rgba(229, 86, 107, 0.1); }
+
+    /* ═══════════ MAIN ═══════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 28px 32px 40px;
+      position: relative;
+      z-index: 1;
+      max-width: calc(100vw - var(--sidebar-w));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .topbar h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Search Bar */
+    .search-hero {
+      background: linear-gradient(160deg, #0f1a1f 0%, #0c141b 30%, #0a1018 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      margin-bottom: 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -20px rgba(0,0,0,0.5);
+    }
+
+    .search-hero::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(0, 217, 181, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .search-hero h3 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 18px;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-hero p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-input {
+      flex: 1;
+      background: #0b0f14;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(0, 217, 181, 0.1); }
+
+    .btn-search {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      color: #12100a;
+      border: none;
+      border-radius: 12px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-search:hover { filter: brightness(1.08); }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+
+    /* User Profile Header */
+    .user-profile-header {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .user-profile-header.active { display: block; }
+
+    .profile-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .profile-avatar-lg {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 217, 181, 0.2), rgba(232, 184, 76, 0.1));
+      border: 2px solid rgba(0, 217, 181, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .profile-info h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .profile-info .email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .profile-info .uid {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: #4d5a66;
+      margin-top: 2px;
+    }
+
+    .status-badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-badge.active { background: rgba(0, 217, 181, 0.12); color: var(--teal); }
+    .status-badge.suspended { background: rgba(229, 86, 107, 0.12); color: var(--danger); }
+
+    .profile-stats-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .profile-stat-mini {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .profile-stat-mini .label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .profile-stat-mini .value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .profile-stat-mini .value.teal { color: var(--teal); }
+    .profile-stat-mini .value.gold { color: var(--gold); }
+    .profile-stat-mini .value.purple { color: var(--purple); }
+    .profile-stat-mini .value.danger { color: var(--danger); }
+
+    /* Detail Tabs */
+    .detail-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .detail-tab {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .detail-tab.active { background: var(--teal-dim); color: var(--teal); }
+    .detail-tab:hover:not(.active) { color: var(--text); }
+
+    .detail-panel { display: none; }
+    .detail-panel.active { display: block; }
+
+    /* Tables */
+    .table-container {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--line);
+    }
+
+    td {
+      padding: 10px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.01); }
+    tr:last-child td { border-bottom: none; }
+
+    .txn-status {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .txn-status.credited,
+    .txn-status.completed,
+    .txn-status.active { background: rgba(0, 217, 181, 0.12); color: var(--teal); }
+    .txn-status.pending { background: rgba(232, 184, 76, 0.12); color: var(--gold); }
+    .txn-status.rejected { background: rgba(229, 86, 107, 0.12); color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+    /* Referral tree mini */
+    .ref-tree-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ref-tree-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+    }
+
+    .ref-tree-item .avatar-sm {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 217, 181, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 217, 181, 0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229, 86, 107, 0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232, 184, 76, 0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .side-brand .name, .side-brand .role, .side-nav a span, .side-nav .nav-section, .side-footer a span { display: none; }
+      .side-nav a, .side-footer a { justify-content: center; padding: 10px; }
+      .main { margin-left: 60px; padding: 16px; max-width: calc(100vw - 60px); }
+      .profile-stats-row { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .profile-stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="shield">🛡️</div>
+      <div class="name">CIRCUIT VAULT</div>
+      <div class="role">Admin Panel</div>
+    </div>
+    <nav class="side-nav">
+      <a href="admin-dashboard.html"><span class="nav-icon">📊</span> <span>Dashboard</span></a>
+      <div class="nav-section">Management</div>
+      <a href="admin-users.html"><span class="nav-icon">👥</span> <span>Users</span></a>
+      <a href="admin-deposits.html"><span class="nav-icon">💰</span> <span>Deposits</span></a>
+      <a href="admin-withdrawals.html"><span class="nav-icon">💸</span> <span>Withdrawals</span></a>
+      <a href="admin-plans.html"><span class="nav-icon">📦</span> <span>Plans</span></a>
+      <div class="nav-section">Network</div>
+      <a href="admin-referrals.html"><span class="nav-icon">🔗</span> <span>Referrals</span></a>
+      <a href="admin-vip.html"><span class="nav-icon">👑</span> <span>VIP</span></a>
+      <div class="nav-section">System</div>
+      <a href="admin-settings.html"><span class="nav-icon">⚙️</span> <span>Settings</span></a>
+      <a href="admin-logs.html"><span class="nav-icon">📋</span> <span>Logs</span></a>
+      <a href="admin-impersonate.html" class="active"><span class="nav-icon">🔍</span> <span>User Lookup</span></a>
+    </nav>
+    <div class="side-footer">
+      <a href="admin-login.html" id="logoutSidebar"><span style="font-size:15px;">🚪</span> <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1>🔍 User Lookup</h1>
+    </div>
+
+    <!-- Search Hero -->
+    <div class="search-hero">
+      <h3>View Any User's Complete Data</h3>
+      <p>Search by username to see their profile, transactions, plans, referrals, and full activity.</p>
+      <div class="search-row">
+        <input type="text" class="search-input" id="userSearchInput" placeholder="Enter username..." />
+        <button class="btn-search" id="searchUserBtn">🔍 Look Up</button>
+      </div>
+    </div>
+
+    <!-- User Profile (hidden until search) -->
+    <div class="user-profile-header" id="userProfileHeader">
+      <div class="profile-top">
+        <div class="profile-avatar-lg" id="profileAvatar">U</div>
+        <div class="profile-info">
+          <h2 id="profileName">—</h2>
+          <div class="email" id="profileEmail">—</div>
+          <div class="uid" id="profileUid">—</div>
+        </div>
+        <span class="status-badge active" id="profileStatus">Active</span>
+      </div>
+      <div class="profile-stats-row">
+        <div class="profile-stat-mini"><div class="label">Balance</div><div class="value teal" id="statBalance">$0</div></div>
+        <div class="profile-stat-mini"><div class="label">Deposited</div><div class="value gold" id="statDeposited">$0</div></div>
+        <div class="profile-stat-mini"><div class="label">Withdrawn</div><div class="value danger" id="statWithdrawn">$0</div></div>
+        <div class="profile-stat-mini"><div class="label">Referrals</div><div class="value gold" id="statRefs">0</div></div>
+        <div class="profile-stat-mini"><div class="label">Plans</div><div class="value purple" id="statPlans">0</div></div>
+      </div>
+    </div>
+
+    <!-- Detail Tabs -->
+    <div class="detail-tabs" id="detailTabs" style="display:none;">
+      <button class="detail-tab active" data-tab="transactions">💰 Transactions</button>
+      <button class="detail-tab" data-tab="deposits">📥 Deposits</button>
+      <button class="detail-tab" data-tab="withdrawals">📤 Withdrawals</button>
+      <button class="detail-tab" data-tab="plans">📦 Plans</button>
+      <button class="detail-tab" data-tab="referrals">🔗 Referrals</button>
+      <button class="detail-tab" data-tab="bonuses">🎁 Bonuses</button>
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="detail-panel active" id="panelTransactions"><div class="table-container"><table><thead><tr><th>Type</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="tbodyTransactions"><tr><td colspan="5"><div class="empty-state">Search a user first</div></td></tbody></table></div></div>
+    <div class="detail-panel" id="panelDeposits"><div class="table-container"><table><thead><tr><th>ID</th><th>Amount</th><th>Network</th><th>Status</th><th>Date</th></tr></thead><tbody id="tbodyDeposits"><tr><td colspan="5"><div class="empty-state">Search a user first</div></td></tbody></table></div></div>
+    <div class="detail-panel" id="panelWithdrawals"><div class="table-container"><table><thead><tr><th>ID</th><th>Amount</th><th>Fee</th><th>Net</th><th>Network</th><th>Status</th><th>Date</th></tr></thead><tbody id="tbodyWithdrawals"><tr><td colspan="7"><div class="empty-state">Search a user first</div></td></tbody></table></div></div>
+    <div class="detail-panel" id="panelPlans"><div class="table-container"><table><thead><tr><th>Plan</th><th>Price</th><th>Daily</th><th>Days Left</th><th>Earned</th><th>Status</th><th>Purchased</th></tr></thead><tbody id="tbodyPlans"><tr><td colspan="7"><div class="empty-state">Search a user first</div></td></tbody></table></div></div>
+    <div class="detail-panel" id="panelReferrals"><div id="referralsContent"><div class="empty-state">Search a user first</div></div></div>
+    <div class="detail-panel" id="panelBonuses"><div class="table-container"><table><thead><tr><th>From</th><th>Level</th><th>Amount</th><th>Plan</th><th>Date</th></tr></thead><tbody id="tbodyBonuses"><tr><td colspan="5"><div class="empty-state">Search a user first</div></td></tbody></table></div></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentAdmin = null;
+    let allUsers = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'admin-login.html'; return; }
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = 'admin-login.html'; return; }
+      currentAdmin = user;
+      await loadAllUsers();
+    });
+
+    document.getElementById('logoutSidebar').addEventListener('click', async (e) => {
+      e.preventDefault(); await signOut(auth); window.location.href = 'admin-login.html';
+    });
+
+    async function loadAllUsers() {
+      try {
+        const snap = await getDocs(query(collection(db, 'users'), limit(300)));
+        allUsers = [];
+        snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+      } catch (e) { console.error('Load users error:', e); }
+    }
+
+    // Tab switching
+    document.getElementById('detailTabs').addEventListener('click', (e) => {
+      if (!e.target.classList.contains('detail-tab')) return;
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('panel' + e.target.dataset.tab.charAt(0).toUpperCase() + e.target.dataset.tab.slice(1)).classList.add('active');
+    });
+
+    // Search
+    document.getElementById('searchUserBtn').addEventListener('click', lookupUser);
+    document.getElementById('userSearchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') lookupUser();
+    });
+
+    async function lookupUser() {
+      const search = document.getElementById('userSearchInput').value.trim();
+      if (!search) { toast('error', 'Enter username', 'Type a username to search.'); return; }
+
+      // Find user
+      const user = allUsers.find(u => (u.username || '').toLowerCase() === search.toLowerCase());
+      if (!user) {
+        // Try direct Firestore lookup
+        try {
+          const q = query(collection(db, 'users'), where('usernameLower', '==', search.toLowerCase()));
+          const snap = await getDocs(q);
+          if (snap.empty) {
+            toast('error', 'User Not Found', `No user found with username "${search}".`);
+            return;
+          }
+          const userDoc = snap.docs[0];
+          const foundUser = { uid: userDoc.id, ...userDoc.data() };
+          displayUser(foundUser);
+        } catch (e) {
+          toast('error', 'Search Failed', e.message);
+        }
+        return;
+      }
+      displayUser(user);
+    }
+
+    async function displayUser(user) {
+      // Show profile header
+      document.getElementById('userProfileHeader').classList.add('active');
+      document.getElementById('detailTabs').style.display = 'flex';
+      document.getElementById('profileAvatar').textContent = (user.username || 'U').charAt(0).toUpperCase();
+      document.getElementById('profileName').textContent = user.username || 'Unknown';
+      document.getElementById('profileEmail').textContent = user.email || 'No email';
+      document.getElementById('profileUid').textContent = `UID: ${user.uid}`;
+      const statusBadge = document.getElementById('profileStatus');
+      statusBadge.textContent = user.status || 'active';
+      statusBadge.className = 'status-badge ' + (user.status || 'active');
+      document.getElementById('statBalance').textContent = '$' + (user.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+      document.getElementById('statRefs').textContent = allUsers.filter(u => u.invitedBy === user.uid).length;
+
+      toast('info', 'User Found', `Loading data for ${user.username}...`, 2000);
+
+      // Load all data
+      await Promise.all([
+        loadTransactions(user),
+        loadDeposits(user),
+        loadWithdrawals(user),
+        loadPlans(user),
+        loadReferrals(user),
+        loadBonuses(user)
+      ]);
+
+      // Reset to first tab
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.detail-tab[data-tab="transactions"]')?.classList.add('active');
+      document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panelTransactions').classList.add('active');
+    }
+
+    async function loadTransactions(user) {
+      const tbody = document.getElementById('tbodyTransactions');
+      try {
+        const snap = await getDocs(query(collection(db, 'users', user.uid, 'transactions'), orderBy('createdAt', 'desc'), limit(100)));
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="icon">📭</div>No transactions</div></td></tr>'; return; }
+        tbody.innerHTML = '';
+        snap.forEach(d => {
+          const t = d.data();
+          const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+          const amount = (t.amount || 0).toFixed(2);
+          const prefix = (t.type === 'withdraw' || t.type === 'plan_purchase') ? '-' : '+';
+          const color = prefix === '-' ? 'var(--danger)' : 'var(--teal)';
+          tbody.innerHTML += `<tr><td>${t.type || 'unknown'}</td><td>${t.description || t.type}</td><td style="color:${color};font-weight:600;">${prefix}$${amount}</td><td><span class="txn-status ${t.status || 'credited'}">${t.status || 'credited'}</span></td><td style="font-size:11px;color:var(--text-muted);">${date}</td></tr>`;
+        });
+        // Calculate deposited & withdrawn
+        let deposited = 0, withdrawn = 0;
+        snap.forEach(d => {
+          const t = d.data();
+          if (t.type === 'deposit' && (t.status === 'credited' || t.status === 'completed')) deposited += (t.amount || 0);
+          if (t.type === 'withdraw' && (t.status === 'completed' || t.status === 'credited')) withdrawn += (t.amount || 0);
+        });
+        document.getElementById('statDeposited').textContent = '$' + deposited.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        document.getElementById('statWithdrawn').textContent = '$' + withdrawn.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Error loading</div></td></tr>'; }
+    }
+
+    async function loadDeposits(user) {
+      const tbody = document.getElementById('tbodyDeposits');
+      try {
+        const snap = await getDocs(query(collection(db, 'deposits'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(50)));
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No deposits</div></td></tr>'; return; }
+        tbody.innerHTML = '';
+        snap.forEach(d => {
+          const t = d.data();
+          const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+          tbody.innerHTML += `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:10px;">${d.id.slice(0,14)}...</td><td style="font-weight:600;">$${(t.amount||0).toFixed(2)}</td><td>${t.network||'—'}</td><td><span class="txn-status ${t.status||'pending'}">${t.status||'pending'}</span></td><td style="font-size:11px;color:var(--text-muted);">${date}</td></tr>`;
+        });
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Error loading</div></td></tr>'; }
+    }
+
+    async function loadWithdrawals(user) {
+      const tbody = document.getElementById('tbodyWithdrawals');
+      try {
+        const snap = await getDocs(query(collection(db, 'withdrawals'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'), limit(50)));
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">No withdrawals</div></td></tr>'; return; }
+        tbody.innerHTML = '';
+        snap.forEach(d => {
+          const t = d.data();
+          const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+          tbody.innerHTML += `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:10px;">${d.id.slice(0,12)}...</td><td>$${(t.amount||0).toFixed(2)}</td><td style="color:var(--danger);">-$${(t.fee||0).toFixed(2)}</td><td style="color:var(--teal);">$${(t.netAmount||0).toFixed(2)}</td><td>${t.network||'—'}</td><td><span class="txn-status ${t.status||'pending'}">${t.status||'pending'}</span></td><td style="font-size:11px;color:var(--text-muted);">${date}</td></tr>`;
+        });
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Error loading</div></td></tr>'; }
+    }
+
+    async function loadPlans(user) {
+      const tbody = document.getElementById('tbodyPlans');
+      try {
+        const snap = await getDocs(collection(db, 'users', user.uid, 'plans'));
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">No plans purchased</div></td></tr>'; document.getElementById('statPlans').textContent = '0'; return; }
+        tbody.innerHTML = '';
+        let activePlans = 0;
+        snap.forEach(d => {
+          const p = d.data();
+          if (p.status === 'active') activePlans++;
+          const purchased = p.purchasedAt ? new Date(p.purchasedAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+          const daysLeft = p.daysRemaining ?? p.days ?? 0;
+          tbody.innerHTML += `<tr><td style="font-weight:600;">${p.planName||'—'}</td><td>$${(p.price||0).toFixed(2)}</td><td style="color:var(--teal);">$${(p.dailyReturn||0).toFixed(2)}</td><td>${daysLeft}</td><td style="color:var(--teal);">$${(p.totalEarnedSoFar||0).toFixed(2)}</td><td><span class="txn-status ${p.status||'active'}">${p.status||'active'}</span></td><td style="font-size:11px;">${purchased}</td></tr>`;
+        });
+        document.getElementById('statPlans').textContent = activePlans;
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Error loading</div></td></tr>'; }
+    }
+
+    async function loadReferrals(user) {
+      const container = document.getElementById('referralsContent');
+      const downlines = allUsers.filter(u => u.invitedBy === user.uid);
+      document.getElementById('statRefs').textContent = downlines.length;
+
+      if (downlines.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🌱</div>No referrals</div>';
+        return;
+      }
+
+      // Get upline
+      const upline = user.invitedBy ? allUsers.find(u => u.uid === user.invitedBy) : null;
+
+      let html = '<div style="margin-bottom:16px;">';
+      if (upline) {
+        html += `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">⬆️ Invited by: <strong style="color:var(--gold);">${upline.username || upline.uid?.slice(0,10)}</strong></div>`;
+      }
+      html += `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">⬇️ ${downlines.length} Direct Referral${downlines.length > 1 ? 's' : ''}:</div>`;
+      html += '<div class="ref-tree-mini">';
+
+      for (const dl of downlines) {
+        const dlRefs = allUsers.filter(u => u.invitedBy === dl.uid).length;
+        let dlInvested = 0;
+        try {
+          const planSnap = await getDocs(collection(db, 'users', dl.uid, 'plans'));
+          planSnap.forEach(p => { dlInvested += (p.data().price || 0); });
+        } catch (e) { /* */ }
+        html += `
+          <div class="ref-tree-item">
+            <div class="avatar-sm">${(dl.username || 'U').charAt(0).toUpperCase()}</div>
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:13px;">${dl.username || 'Unknown'}</div>
+              <div style="font-size:10px;color:var(--text-muted);">Refs: ${dlRefs} | Invested: $${dlInvested.toFixed(2)} | Balance: $${(dl.balance||0).toFixed(2)}</div>
+            </div>
+            <span class="txn-status ${dl.status || 'active'}">${dl.status || 'active'}</span>
+          </div>`;
+      }
+      html += '</div></div>';
+      container.innerHTML = html;
+    }
+
+    async function loadBonuses(user) {
+      const tbody = document.getElementById('tbodyBonuses');
+      try {
+        const snap = await getDocs(query(
+          collection(db, 'users', user.uid, 'transactions'),
+          where('type', '==', 'referral_bonus'),
+          orderBy('createdAt', 'desc'),
+          limit(50)
+        ));
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No referral bonuses</div></td></tr>'; return; }
+        tbody.innerHTML = '';
+        snap.forEach(d => {
+          const b = d.data();
+          const date = b.createdAt ? new Date(b.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+          const fromUser = allUsers.find(u => u.uid === b.fromUser);
+          tbody.innerHTML += `<tr><td style="font-weight:600;">${fromUser?.username || (b.fromUser?.slice(0,10) || '—')}</td><td style="color:${b.level===1?'var(--gold)':b.level===2?'var(--teal)':'var(--purple)'};">L${b.level||1}</td><td style="color:var(--teal);font-weight:600;">$${(b.amount||0).toFixed(2)}</td><td>${b.planName||'—'}</td><td style="font-size:11px;color:var(--text-muted);">${date}</td></tr>`;
+        });
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Error loading</div></td></tr>'; }
+    }
+  </script>
+</body>
+</html>
