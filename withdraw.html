@@ -558,7 +558,7 @@
         <input type="number" class="amount-input" id="amountInput" placeholder="0.00" min="1" step="0.01" inputmode="decimal" />
       </div>
       <div class="amount-error" id="amountError"></div>
-      <div class="amount-hint">Minimum: $1.00 · Maximum: your available balance</div>
+      <div class="amount-hint">Minimum: $3.00 · Maximum: your available balance</div>
 
       <div class="breakdown" id="breakdown" style="display:none;">
         <div class="breakdown-row"><span class="breakdown-label">Amount</span><span class="breakdown-value" id="breakAmount">$0.00</span></div>
@@ -658,7 +658,7 @@
     const db = getFirestore(app);
 
     const WITHDRAWAL_FEE_PERCENT = 4;
-    const MIN_WITHDRAWAL = 1;
+    const MIN_WITHDRAWAL = 3;
     const WITHDRAWAL_START_HOUR = 8;
     const WITHDRAWAL_END_HOUR = 17;
 
