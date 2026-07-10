@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Balance Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 70%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 16px 0;
+    }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+    }
+
+    .topbar h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 20px; font-weight: 700;
+    }
+
+    .topbar .admin-badge {
+      font-size: 11px;
+      color: var(--danger);
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+    }
+
+    /* System Balance Cards */
+    .balance-overview {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .balance-card {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 18px 16px;
+    }
+
+    .balance-card.accent {
+      border-color: rgba(232,184,76,0.3);
+      background: linear-gradient(135deg, rgba(232,184,76,0.06), rgba(232,184,76,0.02));
+    }
+
+    .balance-card-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .balance-card-value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .balance-card-value.teal { color: var(--teal); }
+    .balance-card-value.gold { color: var(--gold); }
+    .balance-card-value.danger { color: var(--danger); }
+    .balance-card-value.purple { color: var(--purple); }
+
+    .balance-card-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Action Cards */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .action-panel {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .action-panel-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,217,181,0.1); }
+
+    select.form-input {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c8894' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+
+    select.form-input option {
+      background: var(--bg-panel);
+      color: var(--text);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-danger {
+      background: rgba(229,86,107,0.1);
+      border: 1px solid rgba(229,86,107,0.3);
+      color: var(--danger);
+      width: 100%;
+    }
+
+    .btn-danger:hover { background: rgba(229,86,107,0.2); }
+
+    .btn-teal {
+      background: rgba(0,217,181,0.1);
+      border: 1px solid rgba(0,217,181,0.3);
+      color: var(--teal);
+      width: 100%;
+    }
+
+    .btn-teal:hover { background: rgba(0,217,181,0.2); }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--copper));
+      color: #12100a;
+      width: 100%;
+    }
+
+    .btn-gold:hover { filter: brightness(1.08); }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .info-box {
+      background: rgba(232,184,76,0.06);
+      border: 1px solid rgba(232,184,76,0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 11px;
+      color: var(--gold);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .result-box {
+      background: rgba(0,217,181,0.06);
+      border: 1px solid rgba(0,217,181,0.2);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      color: var(--teal);
+      line-height: 1.6;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+
+    .result-box .highlight {
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px 24px;
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal h3 { font-family: "Space Grotesk", sans-serif; font-size: 18px; margin-bottom: 12px; }
+    .modal .close-btn { float: right; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+    .modal .close-btn:hover { color: var(--text); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-btn {
+      flex: 1; padding: 12px; border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 13px;
+      cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .modal-btn.primary { background: linear-gradient(135deg, var(--gold), var(--copper)); color: #12100a; }
+    .modal-btn.primary:hover { filter: brightness(1.08); }
+    .modal-btn.cancel { background: transparent; border: 1px solid var(--line); color: var(--text-muted); }
+    .modal-btn.cancel:hover { border-color: var(--teal); color: var(--teal); }
+    .modal-btn.danger { background: rgba(229,86,107,0.15); border: 1px solid rgba(229,86,107,0.3); color: var(--danger); }
+    .modal-btn.danger:hover { background: rgba(229,86,107,0.25); }
+    .modal-input {
+      width: 100%; background: #0b0f14;
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 12px 14px; color: var(--text);
+      font-family: "Inter", sans-serif; font-size: 13px;
+      outline: none; margin-bottom: 10px;
+    }
+    .modal-input:focus { border-color: var(--teal); }
+    .modal-error { color: var(--danger); font-size: 11px; margin-bottom: 8px; min-height: 16px; }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%); opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2,0.8,0.2,1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232,184,76,0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      background: linear-gradient(180deg, rgba(12,17,25,0.98) 0%, rgba(6,9,14,0.99) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 2px solid var(--line);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 2px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+      overflow-x: auto;
+    }
+
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 8px; border-radius: 8px;
+      text-decoration: none; color: var(--text-muted);
+      transition: all 0.2s; min-width: 56px; cursor: pointer;
+      position: relative; flex-shrink: 0;
+    }
+
+    .nav-item svg { width: 20px; height: 20px; }
+    .nav-item span { font-size: 8px; font-weight: 500; letter-spacing: 0.03em; white-space: nowrap; }
+    .nav-item.active { color: #f87171; }
+
+    .nav-item.active::before {
+      content: ""; position: absolute;
+      top: -2px; left: 50%; transform: translateX(-50%);
+      width: 18px; height: 2px;
+      background: #f87171;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .nav-item:hover { color: #f87171; }
+    .nav-item:active { transform: scale(0.92); }
+
+    @media (max-width: 768px) {
+      .balance-overview { grid-template-columns: repeat(2, 1fr); }
+      .action-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .balance-overview { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+
+  <div class="app-container">
+    <div class="topbar">
+      <h1>💰 Balance Management</h1>
+      <span class="admin-badge" id="adminName">Admin</span>
+    </div>
+
+    <!-- System Balance Overview -->
+    <div class="balance-overview">
+      <div class="balance-card">
+        <div class="balance-card-label">Total Deposits</div>
+        <div class="balance-card-value teal" id="totalDeposits">$0</div>
+        <div class="balance-card-sub">All-time credited</div>
+      </div>
+      <div class="balance-card accent">
+        <div class="balance-card-label">Total Withdrawals</div>
+        <div class="balance-card-value danger" id="totalWithdrawals">$0</div>
+        <div class="balance-card-sub">All-time completed</div>
+      </div>
+      <div class="balance-card">
+        <div class="balance-card-label">Fees Collected</div>
+        <div class="balance-card-value gold" id="totalFees">$0</div>
+        <div class="balance-card-sub">Withdrawal fees</div>
+      </div>
+      <div class="balance-card">
+        <div class="balance-card-label">System Balance</div>
+        <div class="balance-card-value purple" id="totalSystemBalance">$0</div>
+        <div class="balance-card-sub">Across all users</div>
+      </div>
+    </div>
+
+    <!-- Action Panels -->
+    <div class="action-grid">
+      <!-- Deduct from Deposit Balance -->
+      <div class="action-panel">
+        <div class="action-panel-title">📥 Deduct from Deposit Balance</div>
+        <div class="info-box">
+          💡 This deducts from the <strong>total credited deposits</strong> pool. Use this to adjust the system's recorded deposit balance.
+        </div>
+        <div class="form-group">
+          <label>Amount to Deduct (USD)</label>
+          <input type="number" class="form-input" id="deductDepositAmount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" class="form-input" id="deductDepositReason" placeholder="e.g., Correction, Chargeback" />
+        </div>
+        <button class="btn btn-danger" id="deductDepositBtn">🔻 Deduct from Deposits</button>
+        <div class="result-box" id="deductDepositResult">
+          <div>✅ <strong>Deposit Balance Deducted</strong></div>
+          <div>Amount: <span class="highlight" id="deductDepositAmountShow">$0.00</span></div>
+          <div>Reason: <span id="deductDepositReasonShow">—</span></div>
+        </div>
+      </div>
+
+      <!-- Deduct from Withdrawal Balance -->
+      <div class="action-panel">
+        <div class="action-panel-title">📤 Deduct from Withdrawal Balance</div>
+        <div class="info-box">
+          💡 This deducts from the <strong>total completed withdrawals</strong> pool. Use this to adjust the system's recorded withdrawal balance.
+        </div>
+        <div class="form-group">
+          <label>Amount to Deduct (USD)</label>
+          <input type="number" class="form-input" id="deductWithdrawAmount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" class="form-input" id="deductWithdrawReason" placeholder="e.g., Refund processed, Adjustment" />
+        </div>
+        <button class="btn btn-danger" id="deductWithdrawBtn">🔻 Deduct from Withdrawals</button>
+        <div class="result-box" id="deductWithdrawResult">
+          <div>✅ <strong>Withdrawal Balance Deducted</strong></div>
+          <div>Amount: <span class="highlight" id="deductWithdrawAmountShow">$0.00</span></div>
+          <div>Reason: <span id="deductWithdrawReasonShow">—</span></div>
+        </div>
+      </div>
+
+      <!-- Deduct from Fees -->
+      <div class="action-panel">
+        <div class="action-panel-title">💸 Deduct from Fees Collected</div>
+        <div class="info-box">
+          💡 This deducts from the <strong>total fees collected</strong>. Use this if you need to adjust fee records.
+        </div>
+        <div class="form-group">
+          <label>Amount to Deduct (USD)</label>
+          <input type="number" class="form-input" id="deductFeesAmount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" class="form-input" id="deductFeesReason" placeholder="e.g., Fee waiver, Correction" />
+        </div>
+        <button class="btn btn-danger" id="deductFeesBtn">🔻 Deduct from Fees</button>
+        <div class="result-box" id="deductFeesResult">
+          <div>✅ <strong>Fees Balance Deducted</strong></div>
+          <div>Amount: <span class="highlight" id="deductFeesAmountShow">$0.00</span></div>
+          <div>Reason: <span id="deductFeesReasonShow">—</span></div>
+        </div>
+      </div>
+
+      <!-- Adjust User Balance Directly -->
+      <div class="action-panel">
+        <div class="action-panel-title">👤 Adjust Specific User Balance</div>
+        <div class="info-box">
+          💡 Search a user and adjust their balance directly — add or deduct funds.
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" class="form-input" id="adjustUsername" placeholder="Search username..." />
+          <div id="adjustUserResult" style="font-size:11px;margin-top:4px;min-height:16px;"></div>
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select class="form-input" id="adjustAction">
+            <option value="add">➕ Add Funds</option>
+            <option value="deduct">➖ Deduct Funds</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (USD)</label>
+          <input type="number" class="form-input" id="adjustAmount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" class="form-input" id="adjustReason" placeholder="e.g., Admin adjustment" />
+        </div>
+        <button class="btn btn-gold" id="adjustBalanceBtn">💰 Adjust Balance</button>
+        <div class="result-box" id="adjustBalanceResult">
+          <div>✅ <strong>Balance Adjusted</strong></div>
+          <div>User: <span class="highlight" id="adjustUserShow">—</span></div>
+          <div>Action: <span id="adjustActionShow">—</span></div>
+          <div>Amount: <span class="highlight" id="adjustAmountShow">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="14" y="2" width="8" height="8" rx="1.5"/><rect x="2" y="14" width="8" height="8" rx="1.5"/><rect x="14" y="14" width="8" height="8" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+      <span>Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v14M6 12l6 6 6-6"/><path d="M4 22h16"/></svg>
+      <span>Deposits</span>
+    </a>
+    <a href="admin-balance.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Balance</span>
+    </a>
+    <a href="admin-plans.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Plans</span>
+    </a>
+    <a href="admin-settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp,
+      collection, query, where, getDocs, increment
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentAdmin = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'admin-login.html'; return; }
+      const snap = await getDoc(doc(db, 'admins', user.uid));
+      if (!snap.exists()) { await signOut(auth); window.location.href = 'admin-login.html'; return; }
+      currentAdmin = user;
+      document.getElementById('adminName').textContent = user.displayName || user.email?.split('@')[0] || 'Admin';
+      loadSystemBalances();
+    });
+
+    async function loadSystemBalances() {
+      try {
+        // Calculate from deposits collection
+        let totalDeposited = 0;
+        const depSnap = await getDocs(collection(db, 'deposits'));
+        depSnap.forEach(d => {
+          if (d.data().status === 'credited') totalDeposited += (d.data().amount || 0);
+        });
+        document.getElementById('totalDeposits').textContent = '$' + totalDeposited.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+        // Calculate from withdrawals collection
+        let totalWithdrawn = 0;
+        let totalFees = 0;
+        const wdrSnap = await getDocs(collection(db, 'withdrawals'));
+        wdrSnap.forEach(d => {
+          if (d.data().status === 'completed') {
+            totalWithdrawn += (d.data().amount || 0);
+            totalFees += (d.data().fee || 0);
+          }
+        });
+        document.getElementById('totalWithdrawals').textContent = '$' + totalWithdrawn.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        document.getElementById('totalFees').textContent = '$' + totalFees.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+        // Total system balance (sum of all user balances)
+        let sysBalance = 0;
+        const userSnap = await getDocs(collection(db, 'users'));
+        userSnap.forEach(d => { sysBalance += (d.data().balance || 0); });
+        document.getElementById('totalSystemBalance').textContent = '$' + sysBalance.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      } catch (e) { console.error('Load balances error:', e); }
+    }
+
+    // ═══════════ DEDUCT FROM DEPOSITS ═══════════
+    document.getElementById('deductDepositBtn').addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('deductDepositAmount').value);
+      const reason = document.getElementById('deductDepositReason').value || 'Admin deduction';
+      if (!amount || amount <= 0) { toast('error','Enter amount','Enter a valid amount.'); return; }
+
+      if (!confirm(`Deduct $${amount.toFixed(2)} from deposit balance?\nReason: ${reason}`)) return;
+
+      const btn = document.getElementById('deductDepositBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+
+      try {
+        // Create a negative deposit entry to offset the balance
+        const adjId = `dep_adj_${Date.now()}`;
+        await setDoc(doc(db, 'deposits', adjId), {
+          amount: -amount,
+          currency: 'USD',
+          fullName: 'Admin Adjustment',
+          phone: '—',
+          network: 'Admin',
+          status: 'credited',
+          createdAt: serverTimestamp(),
+          reviewedBy: currentAdmin.uid,
+          adjustmentReason: reason,
+          adjustmentType: 'deduct_deposit'
+        });
+
+        // Log the action
+        await setDoc(doc(db, 'adminLogs', `baladj_${adjId}`), {
+          adminId: currentAdmin.uid,
+          action: 'deduct_deposit_balance',
+          amount,
+          reason,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('deductDepositAmountShow').textContent = '$' + amount.toFixed(2);
+        document.getElementById('deductDepositReasonShow').textContent = reason;
+        document.getElementById('deductDepositResult').classList.add('visible');
+
+        toast('success','Deposit Deducted',`$${amount.toFixed(2)} deducted from deposit balance.`);
+        loadSystemBalances();
+      } catch (e) {
+        toast('error','Failed',e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '🔻 Deduct from Deposits';
+      }
+    });
+
+    // ═══════════ DEDUCT FROM WITHDRAWALS ═══════════
+    document.getElementById('deductWithdrawBtn').addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('deductWithdrawAmount').value);
+      const reason = document.getElementById('deductWithdrawReason').value || 'Admin deduction';
+      if (!amount || amount <= 0) { toast('error','Enter amount','Enter a valid amount.'); return; }
+
+      if (!confirm(`Deduct $${amount.toFixed(2)} from withdrawal balance?\nReason: ${reason}`)) return;
+
+      const btn = document.getElementById('deductWithdrawBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+
+      try {
+        const adjId = `wdr_adj_${Date.now()}`;
+        await setDoc(doc(db, 'withdrawals', adjId), {
+          amount: -amount,
+          fee: 0,
+          netAmount: -amount,
+          userId: 'admin',
+          network: 'Admin',
+          walletAddress: '—',
+          status: 'completed',
+          createdAt: serverTimestamp(),
+          reviewedBy: currentAdmin.uid,
+          adjustmentReason: reason,
+          adjustmentType: 'deduct_withdrawal'
+        });
+
+        await setDoc(doc(db, 'adminLogs', `baladj_${adjId}`), {
+          adminId: currentAdmin.uid,
+          action: 'deduct_withdrawal_balance',
+          amount,
+          reason,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('deductWithdrawAmountShow').textContent = '$' + amount.toFixed(2);
+        document.getElementById('deductWithdrawReasonShow').textContent = reason;
+        document.getElementById('deductWithdrawResult').classList.add('visible');
+
+        toast('success','Withdrawal Deducted',`$${amount.toFixed(2)} deducted from withdrawal balance.`);
+        loadSystemBalances();
+      } catch (e) {
+        toast('error','Failed',e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '🔻 Deduct from Withdrawals';
+      }
+    });
+
+    // ═══════════ DEDUCT FROM FEES ═══════════
+    document.getElementById('deductFeesBtn').addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('deductFeesAmount').value);
+      const reason = document.getElementById('deductFeesReason').value || 'Admin deduction';
+      if (!amount || amount <= 0) { toast('error','Enter amount','Enter a valid amount.'); return; }
+
+      if (!confirm(`Deduct $${amount.toFixed(2)} from fees collected?\nReason: ${reason}`)) return;
+
+      const btn = document.getElementById('deductFeesBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+
+      try {
+        // Create a withdrawal entry with negative fee to offset
+        const adjId = `fee_adj_${Date.now()}`;
+        await setDoc(doc(db, 'withdrawals', adjId), {
+          amount: 0,
+          fee: -amount,
+          netAmount: 0,
+          userId: 'admin',
+          network: 'Admin',
+          walletAddress: '—',
+          status: 'completed',
+          createdAt: serverTimestamp(),
+          reviewedBy: currentAdmin.uid,
+          adjustmentReason: reason,
+          adjustmentType: 'deduct_fees'
+        });
+
+        await setDoc(doc(db, 'adminLogs', `baladj_${adjId}`), {
+          adminId: currentAdmin.uid,
+          action: 'deduct_fees_balance',
+          amount,
+          reason,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('deductFeesAmountShow').textContent = '$' + amount.toFixed(2);
+        document.getElementById('deductFeesReasonShow').textContent = reason;
+        document.getElementById('deductFeesResult').classList.add('visible');
+
+        toast('success','Fees Deducted',`$${amount.toFixed(2)} deducted from fees.`);
+        loadSystemBalances();
+      } catch (e) {
+        toast('error','Failed',e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '🔻 Deduct from Fees';
+      }
+    });
+
+    // ═══════════ ADJUST SPECIFIC USER BALANCE ═══════════
+    let foundUserUid = null;
+    let foundUsername = null;
+
+    document.getElementById('adjustUsername').addEventListener('input', async () => {
+      const search = document.getElementById('adjustUsername').value.trim();
+      const resultDiv = document.getElementById('adjustUserResult');
+      foundUserUid = null;
+      foundUsername = null;
+      resultDiv.textContent = '';
+      resultDiv.style.color = '';
+
+      if (!search) return;
+
+      try {
+        const q = query(collection(db, 'users'), where('usernameLower', '==', search.toLowerCase()));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          resultDiv.textContent = '❌ User not found.';
+          resultDiv.style.color = 'var(--danger)';
+        } else {
+          const user = snap.docs[0].data();
+          foundUserUid = snap.docs[0].id;
+          foundUsername = user.username;
+          resultDiv.textContent = `✅ Found: ${user.username} — Balance: $${(user.balance||0).toFixed(2)}`;
+          resultDiv.style.color = 'var(--teal)';
+        }
+      } catch (e) {
+        resultDiv.textContent = 'Error searching.';
+        resultDiv.style.color = 'var(--danger)';
+      }
+    });
+
+    document.getElementById('adjustBalanceBtn').addEventListener('click', async () => {
+      if (!foundUserUid) { toast('error','No user','Search and select a user first.'); return; }
+      const amount = parseFloat(document.getElementById('adjustAmount').value);
+      const action = document.getElementById('adjustAction').value;
+      const reason = document.getElementById('adjustReason').value || 'Admin adjustment';
+
+      if (!amount || amount <= 0) { toast('error','Enter amount','Enter a valid amount.'); return; }
+
+      const actionLabel = action === 'add' ? 'add to' : 'deduct from';
+      const delta = action === 'add' ? amount : -amount;
+
+      if (!confirm(`${action === 'add' ? 'Add' : 'Deduct'} $${amount.toFixed(2)} ${actionLabel} ${foundUsername}'s balance?\nReason: ${reason}`)) return;
+
+      const btn = document.getElementById('adjustBalanceBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+
+      try {
+        await updateDoc(doc(db, 'users', foundUserUid), { balance: increment(delta) });
+
+        const txnId = `adj_${Date.now()}`;
+        await setDoc(doc(db, 'users', foundUserUid, 'transactions', txnId), {
+          type: action === 'add' ? 'deposit' : 'withdraw',
+          amount,
+          description: `Admin Adjustment: ${reason}`,
+          status: 'credited',
+          createdAt: serverTimestamp()
+        });
+
+        await setDoc(doc(db, 'adminLogs', `useradj_${txnId}`), {
+          adminId: currentAdmin.uid,
+          action: 'adjust_user_balance',
+          targetUserId: foundUserUid,
+          targetUsername: foundUsername,
+          amount,
+          adjustmentType: action,
+          reason,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('adjustUserShow').textContent = foundUsername;
+        document.getElementById('adjustActionShow').textContent = action === 'add' ? '➕ Added' : '➖ Deducted';
+        document.getElementById('adjustAmountShow').textContent = '$' + amount.toFixed(2);
+        document.getElementById('adjustBalanceResult').classList.add('visible');
+
+        toast('success','Balance Adjusted',`$${amount.toFixed(2)} ${action === 'add' ? 'added to' : 'deducted from'} ${foundUsername}.`);
+        loadSystemBalances();
+      } catch (e) {
+        toast('error','Failed',e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '💰 Adjust Balance';
+      }
+    });
+  </script>
+</body>
+</html>
