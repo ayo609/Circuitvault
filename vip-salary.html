@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — VIP Salary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --purple: #a78bfa;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 72px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 20%, transparent 70%);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      width: 1000px;
+      height: 1000px;
+      transform: translateX(-50%);
+      background: radial-gradient(circle at 50% 40%, rgba(0,217,181,0.06) 0%, rgba(232,184,76,0.03) 35%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 24px 16px 0;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    .back-btn {
+      width: 40px; height: 40px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      text-decoration: none; flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .back-btn:active { transform: scale(0.95); }
+
+    .header-info h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #f2f5f6 20%, var(--gold) 65%, var(--copper) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      line-height: 1.2;
+    }
+
+    .header-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .section-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    /* VIP Salary Cards */
+    .vip-salary-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .vip-salary-card {
+      background: linear-gradient(160deg, #0f1a1f 0%, #0c141b 30%, #0a1018 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -20px rgba(0,0,0,0.5);
+      transition: all 0.3s;
+    }
+
+    .vip-salary-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+
+    .vip-salary-card.vip1 { border-color: rgba(205,127,50,0.4); }
+    .vip-salary-card.vip2 { border-color: rgba(192,192,192,0.4); }
+    .vip-salary-card.vip3 { border-color: rgba(255,215,0,0.4); }
+
+    .vip-salary-card.vip1::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(205,127,50,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .vip-salary-card.vip2::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(192,192,192,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .vip-salary-card.vip3::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .vip-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .vip-card-tier {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .vip-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    .vip-card-icon.vip1 { background: rgba(205,127,50,0.15); }
+    .vip-card-icon.vip2 { background: rgba(192,192,192,0.15); }
+    .vip-card-icon.vip3 { background: rgba(255,215,0,0.15); }
+
+    .vip-card-name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .vip-card-name.vip1 { color: #cd7f32; }
+    .vip-card-name.vip2 { color: #c0c0c0; }
+    .vip-card-name.vip3 { color: #ffd700; }
+
+    .vip-card-salary {
+      text-align: right;
+    }
+
+    .vip-card-salary-amount {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .vip-card-salary-period {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .vip-card-details {
+      position: relative;
+      z-index: 1;
+    }
+
+    .vip-card-requirement {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .vip-card-requirement strong { color: var(--gold); }
+
+    .vip-progress-section {
+      margin-bottom: 14px;
+    }
+
+    .vip-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .vip-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .vip-progress-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .vip-progress-fill.vip1 { background: linear-gradient(90deg, #cd7f32, #e8a850); }
+    .vip-progress-fill.vip2 { background: linear-gradient(90deg, #c0c0c0, #e0e0e0); }
+    .vip-progress-fill.vip3 { background: linear-gradient(90deg, #ffd700, #ffed4a); }
+
+    .vip-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .vip-stat {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .vip-stat-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 7.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .vip-stat-value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .vip-stat-value.teal { color: var(--teal); }
+    .vip-stat-value.gold { color: var(--gold); }
+    .vip-stat-value.purple { color: var(--purple); }
+
+    .vip-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .vip-status-badge.qualified {
+      background: rgba(0,217,181,0.12);
+      color: var(--teal);
+      border: 1px solid rgba(0,217,181,0.3);
+    }
+
+    .vip-status-badge.pending {
+      background: rgba(232,184,76,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(232,184,76,0.3);
+    }
+
+    .next-cycle-info {
+      font-size: 11px;
+      color: var(--teal);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .next-cycle-info.warning { color: var(--gold); }
+
+    .bonus-info {
+      background: rgba(232,184,76,0.05);
+      border: 1px solid rgba(232,184,76,0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: var(--gold);
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      transform: translateX(120%);
+      opacity: 0;
+      animation: toastIn 0.35s cubic-bezier(0.2,0.8,0.2,1) forwards;
+    }
+
+    .toast.leaving { animation: toastOut 0.25s ease forwards; }
+    @keyframes toastIn { to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+
+    .toast-icon {
+      width: 18px; height: 18px; flex: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    }
+
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232,184,76,0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #4d5a66; cursor: pointer; font-size: 13px; padding: 2px; }
+    .toast-close:hover { color: var(--text); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      background: linear-gradient(180deg, rgba(12,17,25,0.95) 0%, rgba(10,15,22,0.98) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 8px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 12px; border-radius: 10px;
+      text-decoration: none; color: var(--text-muted);
+      transition: all 0.2s; min-width: 56px; cursor: pointer; position: relative;
+    }
+
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item span { font-size: 10px; font-weight: 500; letter-spacing: 0.03em; }
+    .nav-item.active { color: var(--teal); }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      top: -1px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 2px;
+      background: var(--teal);
+      border-radius: 0 0 4px 4px;
+    }
+
+    .nav-item:hover { color: var(--teal); }
+    .nav-item:active { transform: scale(0.9); }
+
+    @media (min-width: 768px) { .app-container { max-width: 600px; padding: 32px 20px 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <div class="app-container">
+    <header class="header">
+      <a href="dashboard.html" class="back-btn" aria-label="Back">
+        <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+          <path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="header-info">
+        <h1>VIP Salary</h1>
+        <p>Earn from your referral network quality</p>
+      </div>
+    </header>
+
+    <div class="bonus-info">
+      💰 Earn <strong>VIP salaries every 10 days</strong> based on the quality of your referrals' plan purchases. Must have at least <strong>5 qualifying referrals</strong> in each tier to earn.
+    </div>
+
+    <!-- VIP Salary Cards -->
+    <div class="vip-salary-grid" id="vipSalaryGrid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="14" y="2" width="8" height="8" rx="1.5"/><rect x="2" y="14" width="8" height="8" rx="1.5"/><rect x="14" y="14" width="8" height="8" rx="1.5"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="deposit.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v14M6 12l6 6 6-6"/><path d="M4 22h16"/></svg>
+      <span>Deposit</span>
+    </a>
+    <a href="plans.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      <span>Plans</span>
+    </a>
+    <a href="vip-salary.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/></svg>
+      <span>VIP Salary</span>
+    </a>
+    <a href="settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, query, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ✅ VIP Salary Tiers based on plan quality
+    const VIP_SALARY_TIERS = [
+      {
+        level: 1,
+        name: 'VIP 1',
+        icon: '🥉',
+        salary: 30,
+        periodDays: 10,
+        minQualifying: 5,
+        targetRefs: 10,
+        // Plans in this range: Elite ($37.50) to Pro ($50)
+        planIds: ['plan8', 'plan9'],
+        planNames: ['Elite', 'Pro'],
+        priceRange: '$37.50 – $50',
+        colorClass: 'vip1'
+      },
+      {
+        level: 2,
+        name: 'VIP 2',
+        icon: '🥈',
+        salary: 50,
+        periodDays: 10,
+        minQualifying: 5,
+        targetRefs: 10,
+        // Plans in this range: Anseum ($100) to VIP Gold ($500)
+        planIds: ['plan10', 'plan11', 'plan12'],
+        planNames: ['Anseum', 'VIP Silver', 'VIP Gold'],
+        priceRange: '$100 – $500',
+        colorClass: 'vip2'
+      },
+      {
+        level: 3,
+        name: 'VIP 3',
+        icon: '🥇',
+        salary: 100,
+        periodDays: 10,
+        minQualifying: 5,
+        targetRefs: 10,
+        // Plans in this range: VIP Diamond ($1000) to VIP Elite ($1500)
+        planIds: ['plan13', 'plan14'],
+        planNames: ['VIP Diamond', 'VIP Elite'],
+        priceRange: '$1,000 – $1,500',
+        colorClass: 'vip3'
+      }
+    ];
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" aria-label="Dismiss">✕</button>`;
+      stack.appendChild(el);
+      const remove = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+      el.querySelector('.toast-close').addEventListener('click', remove);
+      if (ms) setTimeout(remove, ms);
+    }
+
+    let currentUser = null;
+    let allDownlines = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      await loadData();
+      renderVIPCards();
+    });
+
+    async function loadData() {
+      try {
+        // Get all users
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const allUsers = [];
+        usersSnap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+
+        // Get direct downlines
+        allDownlines = allUsers.filter(u => u.invitedBy === currentUser.uid);
+
+        // For each downline, get their active plans
+        for (const dl of allDownlines) {
+          dl.activePlans = [];
+          try {
+            const planSnap = await getDocs(query(
+              collection(db, 'users', dl.uid, 'plans'),
+              where('status', '==', 'active')
+            ));
+            planSnap.forEach(p => {
+              dl.activePlans.push({ id: p.id, ...p.data() });
+            });
+          } catch (e) {
+            dl.activePlans = [];
+          }
+        }
+      } catch (e) {
+        console.error('Load error:', e);
+        allDownlines = [];
+      }
+    }
+
+    function countReferralsWithPlans(planIds) {
+      let count = 0;
+      for (const dl of allDownlines) {
+        const hasPlan = dl.activePlans.some(p => planIds.includes(p.planId));
+        if (hasPlan) count++;
+      }
+      return count;
+    }
+
+    function renderVIPCards() {
+      const grid = document.getElementById('vipSalaryGrid');
+      grid.innerHTML = '';
+
+      VIP_SALARY_TIERS.forEach(tier => {
+        const qualifyingRefs = countReferralsWithPlans(tier.planIds);
+        const isQualified = qualifyingRefs >= tier.minQualifying;
+        const progressPercent = Math.min(100, (qualifyingRefs / tier.targetRefs) * 100);
+        const nextCycleNeeded = tier.minQualifying - qualifyingRefs;
+
+        grid.innerHTML += `
+          <div class="vip-salary-card ${tier.colorClass}">
+            <div class="vip-card-header">
+              <div class="vip-card-tier">
+                <div class="vip-card-icon ${tier.colorClass}">${tier.icon}</div>
+                <div>
+                  <div class="vip-card-name ${tier.colorClass}">${tier.name}</div>
+                  <div style="font-size:10px;color:var(--text-muted);">${tier.priceRange} Plans</div>
+                </div>
+              </div>
+              <div class="vip-card-salary">
+                <div class="vip-card-salary-amount">$${tier.salary}</div>
+                <div class="vip-card-salary-period">every ${tier.periodDays} days</div>
+              </div>
+            </div>
+
+            <div class="vip-card-details">
+              <div class="vip-card-requirement">
+                📦 Invite <strong>${tier.targetRefs} persons</strong> who purchase <strong>${tier.planNames.join(' to ')}</strong> packages.<br>
+                ⚡ Must have at least <strong>${tier.minQualifying} qualifying referrals</strong> to earn.
+              </div>
+
+              <div class="vip-progress-section">
+                <div class="vip-progress-labels">
+                  <span>Qualifying Refs: ${qualifyingRefs}/${tier.targetRefs}</span>
+                  <span>${progressPercent.toFixed(0)}%</span>
+                </div>
+                <div class="vip-progress-bar">
+                  <div class="vip-progress-fill ${tier.colorClass}" style="width:${progressPercent}%;"></div>
+                </div>
+              </div>
+
+              <div class="vip-stats-row">
+                <div class="vip-stat">
+                  <div class="vip-stat-label">Qualified</div>
+                  <div class="vip-stat-value ${isQualified ? 'teal' : 'gold'}">${qualifyingRefs}</div>
+                </div>
+                <div class="vip-stat">
+                  <div class="vip-stat-label">Needed</div>
+                  <div class="vip-stat-value purple">${tier.minQualifying}</div>
+                </div>
+                <div class="vip-stat">
+                  <div class="vip-stat-label">Target</div>
+                  <div class="vip-stat-value gold">${tier.targetRefs}</div>
+                </div>
+              </div>
+
+              <div style="text-align:center;">
+                <span class="vip-status-badge ${isQualified ? 'qualified' : 'pending'}">
+                  ${isQualified ? '✅ Qualified — Earning!' : '⏳ Building...'}
+                </span>
+              </div>
+
+              ${isQualified ? `
+                <div class="next-cycle-info">
+                  🎯 Next salary: <strong>$${tier.salary}</strong> credited in your next cycle
+                </div>
+              ` : `
+                <div class="next-cycle-info warning">
+                  ⚠️ Need <strong>${nextCycleNeeded} more</strong> qualifying referral${nextCycleNeeded > 1 ? 's' : ''} in ${tier.planNames.join(' to ')} range
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
