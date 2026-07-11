@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #06090e;
+      --bg-panel: #0c1119;
+      --bg-panel-2: #0a0f16;
+      --line: #1a2330;
+      --line-soft: #141d28;
+      --copper: #c77b3f;
+      --teal: #00d9b5;
+      --teal-dim: #0a4a40;
+      --gold: #e8b84c;
+      --text: #e7ecef;
+      --text-muted: #7c8894;
+      --danger: #e5566b;
+      --radius: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      padding: 24px 16px 80px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 20%, transparent 70%);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--danger), #ff6b6b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .header-badge {
+      background: rgba(229,86,107,0.15);
+      border: 1px solid rgba(229,86,107,0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--danger);
+      letter-spacing: 0.1em;
+    }
+
+    /* Admin Login */
+    .admin-login {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 2px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+    }
+
+    .admin-login h2 {
+      font-family: "Space Grotesk", sans-serif;
+      margin-bottom: 8px;
+      color: var(--danger);
+    }
+
+    .admin-login p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .admin-input {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      color: var(--text);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .admin-input:focus {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(229,86,107,0.1);
+    }
+
+    /* Main Panel */
+    .panel {
+      background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    /* Search */
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: #0b0f14;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0,217,181,0.1);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-search {
+      background: linear-gradient(135deg, var(--teal), #00b894);
+      color: #12100a;
+    }
+
+    .btn-search:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-login {
+      background: linear-gradient(135deg, var(--danger), #ff6b6b);
+      color: white;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+    }
+
+    .btn-login:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 8px 16px;
+      font-size: 11px;
+    }
+
+    /* User Info Card */
+    .user-info-card {
+      background: rgba(0,217,181,0.05);
+      border: 1px solid rgba(0,217,181,0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .user-info-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .user-info-item label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .user-info-item span {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    /* Plans Table */
+    .plan-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px;
+      background: #0b0f14;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+
+    .plan-row:hover {
+      border-color: var(--teal);
+    }
+
+    .plan-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .plan-name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .plan-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .plan-meta span {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    .plan-status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .plan-status.active {
+      background: rgba(0,217,181,0.15);
+      color: var(--teal);
+    }
+
+    .plan-status.completed {
+      background: rgba(232,184,76,0.15);
+      color: var(--gold);
+    }
+
+    .btn-delete {
+      background: rgba(229,86,107,0.1);
+      border: 1px solid rgba(229,86,107,0.3);
+      color: var(--danger);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .btn-delete:hover:not(:disabled) {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-delete:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal h3 {
+      font-family: "Space Grotesk", sans-serif;
+      margin-bottom: 10px;
+      color: var(--danger);
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      cursor: pointer;
+    }
+
+    .btn-confirm {
+      flex: 1;
+      background: var(--danger);
+      border: none;
+      color: white;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+      width: min(320px, calc(100vw - 32px));
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6);
+      animation: toastIn 0.35s ease forwards;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast.success { border-left: 3px solid var(--teal); }
+    .toast.error { border-left: 3px solid var(--danger); }
+    .toast.info { border-left: 3px solid var(--gold); }
+
+    .toast-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast.info .toast-icon { background: rgba(232,184,76,0.15); color: var(--gold); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11px; color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; }
+      .plan-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .btn-delete { margin-left: 0; width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-stack" id="toastStack"></div>
+  <div id="deleteModal" style="display:none;" class="modal-overlay"></div>
+
+  <div class="app-container">
+    <div class="header">
+      <h1>⚡ Admin Panel</h1>
+      <span class="header-badge">RESTRICTED</span>
+      <button class="btn btn-logout" id="logoutBtn" style="margin-left:auto;">Logout</button>
+    </div>
+
+    <!-- Admin Login -->
+    <div class="admin-login" id="adminLogin">
+      <h2>🔐 Admin Access</h2>
+      <p>Enter your admin credentials to continue.</p>
+      <input type="email" class="admin-input" id="adminEmail" placeholder="Admin Email" />
+      <input type="password" class="admin-input" id="adminPassword" placeholder="Admin Password" />
+      <button class="btn btn-login" id="adminLoginBtn">Authenticate</button>
+    </div>
+
+    <!-- Admin Dashboard (Hidden by default) -->
+    <div id="adminDashboard" style="display:none;">
+      <!-- Search -->
+      <div class="panel">
+        <div class="section-title">🔍 Search User</div>
+        <div class="search-row">
+          <input type="text" class="search-input" id="searchInput" placeholder="Email, Username, or User ID..." />
+          <button class="btn btn-search" id="searchBtn">Search</button>
+        </div>
+        <div id="searchResult"></div>
+      </div>
+
+      <!-- User Plans -->
+      <div class="panel" id="userPlansPanel" style="display:none;">
+        <div class="section-title">📦 User Plans</div>
+        <div id="userInfoCard"></div>
+        <div id="plansList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, deleteDoc, collection, 
+      query, where, getDocs, writeBatch, increment
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw",
+      authDomain: "circuit-vault-25fc5.firebaseapp.com",
+      projectId: "circuit-vault-25fc5",
+      storageBucket: "circuit-vault-25fc5.firebasestorage.app",
+      messagingSenderId: "721270431353",
+      appId: "1:721270431353:web:8d43b3176a14e665953ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ⚠️ ADD YOUR ADMIN EMAILS HERE
+    const ADMIN_EMAILS = ['admin@circuitvault.com', 'your-email@gmail.com'];
+
+    const stack = document.getElementById('toastStack');
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+      el.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+      stack.appendChild(el);
+      setTimeout(() => el.remove(), ms);
+    }
+
+    let currentAdmin = null;
+    let searchedUser = null;
+    let userPlans = [];
+
+    // Auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        currentAdmin = user;
+        showDashboard();
+      } else if (user) {
+        toast('error', 'Access Denied', 'You are not authorized as admin.');
+        signOut(auth);
+        showLogin();
+      } else {
+        showLogin();
+      }
+    });
+
+    function showLogin() {
+      document.getElementById('adminLogin').style.display = 'block';
+      document.getElementById('adminDashboard').style.display = 'none';
+    }
+
+    function showDashboard() {
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+    }
+
+    // Admin Login
+    document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn = document.getElementById('adminLoginBtn');
+
+      if (!email || !password) {
+        toast('error', 'Missing Fields', 'Enter email and password.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle the rest
+      } catch (error) {
+        console.error('Login error:', error);
+        let msg = 'Invalid credentials.';
+        if (error.code === 'auth/invalid-credential') msg = 'Wrong email or password.';
+        else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+        toast('error', 'Login Failed', msg);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Authenticate';
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await signOut(auth);
+      searchedUser = null;
+      userPlans = [];
+      document.getElementById('searchResult').innerHTML = '';
+      document.getElementById('userPlansPanel').style.display = 'none';
+    });
+
+    // Search User
+    document.getElementById('searchBtn').addEventListener('click', searchUser);
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') searchUser();
+    });
+
+    async function searchUser() {
+      const query_term = document.getElementById('searchInput').value.trim();
+      const resultDiv = document.getElementById('searchResult');
+
+      if (!query_term) {
+        toast('error', 'Empty Search', 'Enter email, username, or user ID.');
+        return;
+      }
+
+      resultDiv.innerHTML = '<p style="color:var(--text-muted);">Searching...</p>';
+      searchedUser = null;
+      document.getElementById('userPlansPanel').style.display = 'none';
+
+      try {
+        // Try direct UID lookup
+        const uidDoc = await getDoc(doc(db, 'users', query_term));
+        if (uidDoc.exists()) {
+          searchedUser = { uid: query_term, ...uidDoc.data() };
+          displayUserAndPlans();
+          return;
+        }
+
+        // Try email lookup
+        const emailQuery = query(collection(db, 'users'), where('email', '==', query_term.toLowerCase()));
+        const emailSnap = await getDocs(emailQuery);
+        if (!emailSnap.empty) {
+          const doc = emailSnap.docs[0];
+          searchedUser = { uid: doc.id, ...doc.data() };
+          displayUserAndPlans();
+          return;
+        }
+
+        // Try username lookup
+        const usernameQuery = query(collection(db, 'users'), where('usernameLower', '==', query_term.toLowerCase()));
+        const usernameSnap = await getDocs(usernameQuery);
+        if (!usernameSnap.empty) {
+          const doc = usernameSnap.docs[0];
+          searchedUser = { uid: doc.id, ...doc.data() };
+          displayUserAndPlans();
+          return;
+        }
+
+        resultDiv.innerHTML = '<p style="color:var(--danger);">❌ No user found with that email, username, or ID.</p>';
+      } catch (error) {
+        console.error('Search error:', error);
+        resultDiv.innerHTML = '<p style="color:var(--danger);">Search failed. Check Firestore indexes.</p>';
+      }
+    }
+
+    async function displayUserAndPlans() {
+      const resultDiv = document.getElementById('searchResult');
+      const plansPanel = document.getElementById('userPlansPanel');
+
+      // Display user info
+      resultDiv.innerHTML = `
+        <div class="user-info-card">
+          <div class="user-info-row">
+            <div class="user-info-item">
+              <label>Username</label>
+              <span>${searchedUser.username || 'N/A'}</span>
+            </div>
+            <div class="user-info-item">
+              <label>Email</label>
+              <span>${searchedUser.email || 'N/A'}</span>
+            </div>
+            <div class="user-info-item">
+              <label>Balance</label>
+              <span>$${(searchedUser.balance || 0).toFixed(2)}</span>
+            </div>
+            <div class="user-info-item">
+              <label>Status</label>
+              <span style="color:${searchedUser.status==='active'?'var(--teal)':'var(--danger)'}">${searchedUser.status || 'unknown'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Load user plans
+      try {
+        const plansSnap = await getDocs(collection(db, 'users', searchedUser.uid, 'plans'));
+        userPlans = [];
+        plansSnap.forEach(doc => {
+          userPlans.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Sort by purchase date (newest first)
+        userPlans.sort((a, b) => (b.purchasedAt?.seconds || 0) - (a.purchasedAt?.seconds || 0));
+
+        plansPanel.style.display = 'block';
+        renderPlans();
+      } catch (error) {
+        console.error('Load plans error:', error);
+        toast('error', 'Error', 'Could not load user plans.');
+      }
+    }
+
+    function renderPlans() {
+      const plansList = document.getElementById('plansList');
+
+      if (userPlans.length === 0) {
+        plansList.innerHTML = '<div class="empty-state">📦 No plans found for this user.</div>';
+        return;
+      }
+
+      plansList.innerHTML = userPlans.map((plan, index) => {
+        const purchaseDate = plan.purchasedAt 
+          ? new Date(plan.purchasedAt.seconds * 1000).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'short', day: 'numeric' 
+            })
+          : 'Unknown';
+        
+        const status = plan.status || 'unknown';
+        const planName = plan.planName || 'Unknown Plan';
+        const price = (plan.price || 0).toFixed(2);
+        const dailyReturn = (plan.dailyReturn || 0).toFixed(2);
+        const daysRemaining = plan.daysRemaining ?? plan.days ?? 0;
+        const totalEarned = (plan.totalEarnedSoFar || 0).toFixed(2);
+
+        return `
+          <div class="plan-row">
+            <div class="plan-info">
+              <div class="plan-name">${planName}</div>
+              <div class="plan-meta">
+                <div>Price: <span>$${price}</span></div>
+                <div>Daily: <span>$${dailyReturn}</span></div>
+                <div>Remaining: <span>${daysRemaining} days</span></div>
+                <div>Earned: <span>$${totalEarned}</span></div>
+                <div>Purchased: <span>${purchaseDate}</span></div>
+              </div>
+            </div>
+            <span class="plan-status ${status}">${status.toUpperCase()}</span>
+            <button class="btn-delete" onclick="window.confirmDelete('${plan.id}', '${planName}', ${index})">
+              🗑 Delete
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Delete confirmation
+    window.confirmDelete = function(planId, planName, index) {
+      const modal = document.getElementById('deleteModal');
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="modal">
+          <h3>⚠️ Delete Plan?</h3>
+          <p>Are you sure you want to delete <strong>${planName}</strong>?<br><br>
+          This will permanently remove the plan and stop all future daily ROI payments.<br>
+          <span style="color:var(--danger);">This action cannot be undone.</span></p>
+          <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-confirm" id="confirmDeleteBtn">Yes, Delete</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        await executeDelete(planId, planName, index);
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    };
+
+    window.closeModal = function() {
+      document.getElementById('deleteModal').style.display = 'none';
+    };
+
+    async function executeDelete(planId, planName, index) {
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Deleting...';
+
+      try {
+        // Delete the plan document
+        const planRef = doc(db, 'users', searchedUser.uid, 'plans', planId);
+        await deleteDoc(planRef);
+
+        // Add a transaction record for audit
+        const auditId = `admin_delete_${Date.now()}`;
+        const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        await setDoc(doc(db, 'users', searchedUser.uid, 'transactions', auditId), {
+          type: 'admin_deletion',
+          description: `Admin deleted plan: ${planName}`,
+          planId: planId,
+          planName: planName,
+          adminId: currentAdmin.uid,
+          adminEmail: currentAdmin.email,
+          deletedAt: new Date(),
+          status: 'deleted'
+        });
+
+        // Remove from local array
+        userPlans.splice(index, 1);
+        renderPlans();
+        closeModal();
+        
+        toast('success', 'Plan Deleted', `${planName} has been permanently removed. ROI stopped.`, 5000);
+
+        if (userPlans.length === 0) {
+          document.getElementById('userPlansPanel').style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        toast('error', 'Delete Failed', error.message || 'Could not delete the plan.');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Delete';
+      }
+    }
+  </script>
+</body>
+</html>
