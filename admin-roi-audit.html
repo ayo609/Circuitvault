@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Circuit Vault — ROI Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #06090e; --bg-panel: #0c1119; --bg-panel-2: #0a0f16;
+      --line: #1a2330; --line-soft: #141d28; --copper: #c77b3f;
+      --teal: #00d9b5; --gold: #e8b84c; --text: #e7ecef;
+      --text-muted: #7c8894; --danger: #e5566b; --radius: 14px; --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: "Inter", sans-serif; min-height: 100vh;
+      position: relative; overflow-x: hidden; padding: 20px 16px 80px;
+    }
+    body::before { content: ""; position: fixed; inset: 0;
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 48px 48px; opacity: 0.4; z-index: 0; pointer-events: none; }
+    .app-container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .header h1 { font-family: "Space Grotesk", sans-serif; font-size: 22px; font-weight: 700;
+      background: linear-gradient(135deg, var(--danger), #ff6b6b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header-badge { background: rgba(229,86,107,0.15); border: 1px solid rgba(229,86,107,0.3);
+      padding: 4px 12px; border-radius: 20px; font-family: "JetBrains Mono", monospace;
+      font-size: 10px; color: var(--danger); letter-spacing: 0.1em; }
+    .panel { background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+      border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .section-title { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+    .btn { padding: 12px 24px; border: none; border-radius: 10px;
+      font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 13px;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
+    .btn-scan { background: linear-gradient(135deg, var(--danger), #ff6b6b); color: #fff; width: 100%; padding: 16px; font-size: 15px; }
+    .btn-scan:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+    .btn-deduct { background: var(--danger); color: #fff; padding: 8px 16px; font-size: 11px; }
+    .btn-deduct:hover { filter: brightness(1.1); }
+    .btn-deduct:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-deduct.done { background: var(--teal); cursor: default; }
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .summary-card { background: #0b0f14; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+    .summary-card.danger { border-color: rgba(229,86,107,0.4); background: rgba(229,86,107,0.05); }
+    .summary-card .num { font-family: "Space Grotesk", sans-serif; font-size: 28px; font-weight: 700; }
+    .summary-card .num.red { color: var(--danger); }
+    .summary-card .num.green { color: var(--teal); }
+    .summary-card .lbl { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+    .violation-card { background: rgba(229,86,107,0.06); border: 2px solid rgba(229,86,107,0.5);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+    .violation-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .violation-user { font-family: "Space Grotesk", sans-serif; font-size: 16px; font-weight: 700; color: var(--danger); }
+    .violation-user span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+    .violation-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; color: var(--text-muted); font-family: "JetBrains Mono", monospace; }
+    .violation-details .val { color: var(--danger); font-weight: 600; }
+    .violation-details .val.green { color: var(--teal); }
+    .loading-spinner { display: inline-block; width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .admin-login { text-align: center; padding: 30px; }
+    .admin-input { width: 100%; background: #0b0f14; border: 1px solid var(--line); border-radius: 10px;
+      padding: 14px; color: var(--text); font-family: "JetBrains Mono", monospace; font-size: 14px;
+      outline: none; margin-bottom: 12px; }
+    .admin-input:focus { border-color: var(--danger); }
+    .btn-login { background: linear-gradient(135deg, var(--danger), #ff6b6b); color: #fff; width: 100%; padding: 14px; font-size: 15px; }
+    .toast-stack { position: fixed; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 999; width: min(340px, calc(100vw - 32px)); }
+    .toast { background: var(--bg-panel); border: 1px solid var(--line); border-left: 3px solid var(--teal);
+      border-radius: 10px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.6); animation: toastIn 0.35s ease forwards; }
+    @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast.success { border-left-color: var(--teal); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--gold); }
+    .toast-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(0,217,181,0.15); color: var(--teal); }
+    .toast.error .toast-icon { background: rgba(229,86,107,0.15); color: var(--danger); }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg { font-size: 11px; color: var(--text-muted); }
+    .log-entry { padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--text-muted); }
+    .log-entry .ts { color: var(--teal); }
+    .log-entry .warn { color: var(--danger); }
+    @media (max-width: 600px) { .violation-details { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="app-container">
+    <div class="header">
+      <h1>🔍 ROI Duplicate Audit</h1>
+      <span class="header-badge">ADMIN ONLY</span>
+      <button class="btn btn-deduct" id="logoutBtn" style="margin-left:auto;">Logout</button>
+    </div>
+
+    <!-- Admin Login -->
+    <div class="panel admin-login" id="adminLogin">
+      <h2 style="color:var(--danger);margin-bottom:8px;">🔐 Admin Authentication</h2>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Enter admin credentials to access the audit panel.</p>
+      <input type="email" class="admin-input" id="adminEmail" placeholder="Admin Email" />
+      <input type="password" class="admin-input" id="adminPassword" placeholder="Admin Password" />
+      <button class="btn btn-login" id="adminLoginBtn">Authenticate</button>
+    </div>
+
+    <!-- Audit Dashboard -->
+    <div id="auditDashboard" style="display:none;">
+      <div class="panel">
+        <div class="section-title">📊 Scan Summary</div>
+        <div class="summary-cards">
+          <div class="summary-card"><div class="num green" id="totalUsers">0</div><div class="lbl">Total Users Scanned</div></div>
+          <div class="summary-card"><div class="num green" id="totalPlans">0</div><div class="lbl">Total Plans Checked</div></div>
+          <div class="summary-card"><div class="num green" id="totalTxns">0</div><div class="lbl">ROI Transactions</div></div>
+          <div class="summary-card danger"><div class="num red" id="violations">0</div><div class="lbl">⚠️ Duplicate Credits</div></div>
+          <div class="summary-card danger"><div class="num red" id="totalOverpaid">$0.00</div><div class="lbl">Total Overpaid</div></div>
+        </div>
+        <button class="btn btn-scan" id="scanBtn">🔍 Start Full Audit Scan</button>
+        <div id="scanProgress" style="margin-top:10px;font-size:11px;color:var(--text-muted);"></div>
+      </div>
+
+      <!-- Violations List -->
+      <div id="violationsContainer"></div>
+
+      <!-- Scan Log -->
+      <div class="panel" id="logPanel" style="display:none;">
+        <div class="section-title">📋 Scan Log</div>
+        <div id="scanLog" style="max-height:300px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const fb = { apiKey: "AIzaSyBGYofP0i5qwQHpvlt8KynRYbE7tVuk2rw", authDomain: "circuit-vault-25fc5.firebaseapp.com", projectId: "circuit-vault-25fc5", storageBucket: "circuit-vault-25fc5.firebasestorage.app", messagingSenderId: "721270431353", appId: "1:721270431353:web:8d43b3176a14e665953ea8" };
+    const app = initializeApp(fb), auth = getAuth(app), db = getFirestore(app);
+    const ADMIN_EMAILS = ['circuitvault@gmail.com'];
+
+    function toast(type, title, msg, ms = 4000) {
+      const el = document.createElement('div'); el.className = `toast ${type}`;
+      el.innerHTML = `<div class="toast-icon">${type==='success'?'✓':type==='error'?'!':'i'}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+      document.getElementById('toastStack').appendChild(el);
+      setTimeout(() => el.remove(), ms);
+    }
+
+    function addLog(msg, type = 'info') {
+      const log = document.getElementById('scanLog');
+      const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const cls = type === 'warn' ? 'warn' : 'ts';
+      log.innerHTML += `<div class="log-entry"><span class="${cls}">[${ts}]</span> ${msg}</div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    let currentAdmin = null, allViolations = [];
+
+    onAuthStateChanged(auth, (user) => {
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        currentAdmin = user;
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('auditDashboard').style.display = 'block';
+      } else if (user) {
+        toast('error', 'Access Denied', 'Not authorized as admin.');
+        signOut(auth);
+      } else {
+        document.getElementById('adminLogin').style.display = 'block';
+        document.getElementById('auditDashboard').style.display = 'none';
+      }
+    });
+
+    document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pw = document.getElementById('adminPassword').value;
+      if (!email || !pw) { toast('error', 'Missing', 'Enter email and password.'); return; }
+      try {
+        await signInWithEmailAndPassword(auth, email, pw);
+      } catch (e) {
+        toast('error', 'Login Failed', e.message);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await signOut(auth);
+      allViolations = [];
+      document.getElementById('violationsContainer').innerHTML = '';
+    });
+
+    // ✅ HELPER: Get date string from timestamp
+    function getDateStr(ts) {
+      if (!ts) return null;
+      const d = new Date(ts.seconds ? ts.seconds * 1000 : ts);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ✅ MAIN SCAN FUNCTION
+    document.getElementById('scanBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('scanBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span> Scanning all users...';
+      document.getElementById('scanProgress').textContent = '';
+      document.getElementById('scanLog').innerHTML = '';
+      document.getElementById('logPanel').style.display = 'block';
+      allViolations = [];
+      document.getElementById('violationsContainer').innerHTML = '';
+
+      let totalUsers = 0, totalPlans = 0, totalTxns = 0, totalViolations = 0, totalOverpaid = 0;
+
+      try {
+        addLog('🔍 Starting full audit scan...');
+        
+        // Get ALL users
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const users = [];
+        usersSnap.forEach(d => {
+          // Skip subcollections (plans, transactions are subcollections)
+          if (!d.id.includes('/')) users.push({ id: d.id, ...d.data() });
+        });
+        totalUsers = users.length;
+        addLog(`Found ${totalUsers} user accounts`);
+        document.getElementById('scanProgress').textContent = `Scanning ${totalUsers} users...`;
+
+        for (let i = 0; i < users.length; i++) {
+          const user = users[i];
+          if (!user.email) continue; // Skip invalid records
+          
+          document.getElementById('scanProgress').textContent = `Scanning user ${i+1}/${totalUsers}: ${user.email || user.username || user.id}`;
+          
+          try {
+            // Get user's plans
+            const plansSnap = await getDocs(collection(db, 'users', user.id, 'plans'));
+            const plans = [];
+            plansSnap.forEach(d => plans.push({ id: d.id, ...d.data() }));
+            totalPlans += plans.length;
+
+            // Get user's ROI transactions
+            const txnsSnap = await getDocs(query(
+              collection(db, 'users', user.id, 'transactions'),
+              where('type', '==', 'daily_earning')
+            ));
+            const txns = [];
+            txnsSnap.forEach(d => txns.push({ id: d.id, ...d.data() }));
+            totalTxns += txns.length;
+
+            // ✅ CHECK EACH PLAN FOR DUPLICATE CREDITS
+            for (const plan of plans) {
+              if (plan.status === 'completed') continue;
+              
+              // Group ROI transactions by date
+              const creditsByDate = {};
+              for (const txn of txns) {
+                if (txn.planId !== plan.planId) continue;
+                const dateStr = getDateStr(txn.createdAt);
+                if (!dateStr) continue;
+                if (!creditsByDate[dateStr]) creditsByDate[dateStr] = [];
+                creditsByDate[dateStr].push(txn);
+              }
+
+              // Check each date for duplicates
+              for (const [dateStr, dateTxns] of Object.entries(creditsByDate)) {
+                if (dateTxns.length > 1) {
+                  // ✅ DUPLICATE FOUND!
+                  const totalCredited = dateTxns.reduce((sum, t) => sum + (t.amount || 0), 0);
+                  const correctAmount = plan.dailyReturn || 0;
+                  const overpaid = totalCredited - correctAmount;
+                  
+                  if (overpaid > 0) {
+                    totalViolations++;
+                    totalOverpaid += overpaid;
+                    
+                    const violation = {
+                      userId: user.id,
+                      username: user.username || 'Unknown',
+                      email: user.email || 'Unknown',
+                      planId: plan.planId,
+                      planName: plan.planName || 'Unknown Plan',
+                      date: dateStr,
+                      expectedAmount: correctAmount,
+                      actualAmount: totalCredited,
+                      overpaid: overpaid,
+                      creditCount: dateTxns.length,
+                      txns: dateTxns.map(t => ({ id: t.id, amount: t.amount })),
+                      userBalance: user.balance || 0,
+                      deducted: false
+                    };
+                    
+                    allViolations.push(violation);
+                    addLog(`⚠️ DUPLICATE: ${user.email} - ${plan.planName} on ${dateStr} (${dateTxns.length}x credits, $${overpaid.toFixed(2)} overpaid)`, 'warn');
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            addLog(`Error scanning user ${user.email}: ${e.message}`, 'warn');
+          }
+        }
+
+        // ✅ Sort violations: highest overpaid first
+        allViolations.sort((a, b) => b.overpaid - a.overpaid);
+
+        // Update summary
+        document.getElementById('totalUsers').textContent = totalUsers;
+        document.getElementById('totalPlans').textContent = totalPlans;
+        document.getElementById('totalTxns').textContent = totalTxns;
+        document.getElementById('violations').textContent = totalViolations;
+        document.getElementById('totalOverpaid').textContent = '$' + totalOverpaid.toFixed(2);
+
+        addLog(`✅ Scan complete. Found ${totalViolations} duplicate credits totaling $${totalOverpaid.toFixed(2)}`);
+        
+        if (totalViolations === 0) {
+          addLog('🎉 No duplicate credits found! All clean.');
+          toast('success', 'All Clean!', 'No duplicate ROI credits detected.', 5000);
+        } else {
+          toast('error', 'Violations Found!', `${totalViolations} duplicate credits detected.`, 6000);
+        }
+
+        renderViolations();
+      } catch (e) {
+        console.error(e);
+        addLog(`❌ Fatal error: ${e.message}`, 'warn');
+        toast('error', 'Scan Failed', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔍 Start Full Audit Scan';
+        document.getElementById('scanProgress').textContent = 'Scan complete.';
+      }
+    });
+
+    // ✅ RENDER VIOLATIONS
+    function renderViolations() {
+      const container = document.getElementById('violationsContainer');
+      if (allViolations.length === 0) {
+        container.innerHTML = '<div class="panel" style="text-align:center;color:var(--teal);">✅ No duplicate credits detected. All clear!</div>';
+        return;
+      }
+
+      container.innerHTML = `<div class="section-title" style="color:var(--danger);">⚠️ ${allViolations.length} Duplicate Credits Found</div>`;
+      
+      allViolations.forEach((v, i) => {
+        const card = document.createElement('div');
+        card.className = 'violation-card';
+        card.id = `violation-${i}`;
+        card.innerHTML = `
+          <div class="violation-header">
+            <div class="violation-user">🚨 ${v.username} <span>(${v.email})</span></div>
+            <button class="btn btn-deduct" id="deductBtn-${i}" onclick="window.deductOverpaid(${i})">
+              💸 Deduct $${v.overpaid.toFixed(2)}
+            </button>
+          </div>
+          <div class="violation-details">
+            <div>Plan: <span class="val">${v.planName}</span></div>
+            <div>Date: <span class="val">${v.date}</span></div>
+            <div>Expected: <span class="val green">$${v.expectedAmount.toFixed(2)}</span></div>
+            <div>Credited: <span class="val">$${v.actualAmount.toFixed(2)} (${v.creditCount}x)</span></div>
+            <div>Overpaid: <span class="val" style="font-size:14px;">$${v.overpaid.toFixed(2)}</span></div>
+            <div>User Balance: <span class="val green">$${v.userBalance.toFixed(2)}</span></div>
+            <div>User ID: <span style="font-size:9px;color:var(--text-muted);">${v.userId}</span></div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text-muted);">
+            Transactions: ${v.txns.map(t => `${t.id.substring(0,12)}... ($${t.amount.toFixed(2)})`).join(', ')}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ✅ DEDUCT OVERPAID AMOUNT
+    window.deductOverpaid = async function(index) {
+      const v = allViolations[index];
+      if (!v || v.deducted) return;
+      
+      const btn = document.getElementById(`deductBtn-${index}`);
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      try {
+        const userRef = doc(db, 'users', v.userId);
+        const deductionId = `audit_deduct_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
+        
+        // Deduct from balance using increment (same pattern as your other pages)
+        await updateDoc(userRef, { balance: increment(-v.overpaid) });
+        
+        // Log the deduction as a transaction
+        await setDoc(doc(db, 'users', v.userId, 'transactions', deductionId), {
+          type: 'audit_deduction',
+          amount: -v.overpaid,
+          planId: v.planId,
+          planName: v.planName,
+          description: `Audit: Removed ${v.creditCount - 1}x duplicate ROI credits for ${v.planName} on ${v.date}`,
+          status: 'completed',
+          adminId: currentAdmin.uid,
+          adminEmail: currentAdmin.email,
+          createdAt: serverTimestamp(),
+          relatedTxns: v.txns.map(t => t.id)
+        });
+
+        v.deducted = true;
+        v.userBalance -= v.overpaid;
+        
+        btn.textContent = '✅ Deducted';
+        btn.classList.add('done');
+        btn.disabled = true;
+        
+        addLog(`✅ Deducted $${v.overpaid.toFixed(2)} from ${v.email} for ${v.planName} on ${v.date}`);
+        toast('success', 'Deducted!', `$${v.overpaid.toFixed(2)} removed from ${v.username}'s balance.`, 5000);
+
+        // Update display
+        const card = document.getElementById(`violation-${index}`);
+        const details = card.querySelector('.violation-details');
+        details.innerHTML += `<div style="color:var(--teal);grid-column:1/-1;">✅ Deducted $${v.overpaid.toFixed(2)} — New balance: $${v.userBalance.toFixed(2)}</div>`;
+      } catch (e) {
+        console.error(e);
+        toast('error', 'Deduction Failed', e.message);
+        btn.disabled = false;
+        btn.textContent = `💸 Deduct $${v.overpaid.toFixed(2)}`;
+      }
+    };
+  </script>
+</body>
+</html>
